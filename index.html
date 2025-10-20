@@ -4,251 +4,212 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>BVG Anzeiger – Hahneberg & Reimerweg</title>
+<meta name="color-scheme" content="dark light" />
 <style>
   :root{
-    --bvg-yellow:#ffd200;
-    --bvg-black:#000;
-    --ok:#2e7d32;
-    --bad:#c62828;
-    --muted:#666;
+    --bg:#0e0e10;      /* dunkel */
+    --panel:#151518;
+    --text:#e9e9ef;
+    --muted:#a1a1aa;
+    --danger:#ff6b6b;
+    --ok:#4caf50;
+    --accent:#ffd200;  /* BVG-Gelb */
+    --border:#242428;
   }
-  html, body{height:100%;}
+  *{box-sizing:border-box}
+  html,body{height:100%}
   body{
-    margin:0; font-family: system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Noto Sans, "Helvetica Neue", Arial, "Apple Color Emoji","Segoe UI Emoji"; 
-    background: var(--bvg-black); color:#111;
+    margin:0; font-family: system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Cantarell,Noto Sans,Helvetica,Arial;
+    background:var(--bg); color:var(--text);
   }
-  .board{
-    max-width: 1100px; margin: 0 auto; min-height:100%;
-    background: var(--bvg-yellow);
-    display:flex; flex-direction:column;
-    box-shadow: 0 10px 30px rgba(0,0,0,.35);
-  }
+
+  .wrap{max-width:1100px;margin:0 auto;min-height:100%;display:flex;flex-direction:column}
+
   header{
-    display:flex; align-items:center; justify-content:space-between;
-    padding: 16px 18px; position:sticky; top:0; z-index:3;
-    background: var(--bvg-yellow);
-    border-bottom: 4px solid #111;
+    position:sticky;top:0;z-index:3;
+    display:flex;align-items:center;justify-content:space-between;
+    padding:14px 16px;border-bottom:1px solid var(--border);
+    background:linear-gradient(0deg, var(--panel), var(--panel));
   }
-  .brand{font-weight:800; letter-spacing:.2px; font-size: 22px;}
-  .status{
-    font-variant-numeric: tabular-nums;
-    font-weight:700; background:#fff; padding:6px 10px; border-radius: 10px;
-    border:3px solid #111; min-width: 96px; text-align:center;
+  .brand{font-weight:800;letter-spacing:.2px}
+  .status{font-variant-numeric:tabular-nums;font-weight:700;
+    background:#111; color:var(--text); border:2px solid var(--border);
+    padding:6px 10px;border-radius:10px;min-width:96px;text-align:center}
+  .status.ok{outline:2px solid var(--ok)}
+  .status.bad{outline:2px solid var(--danger)}
+  .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+  .seg{display:flex;gap:8px;padding:10px 12px;background:var(--panel);border-bottom:1px solid var(--border)}
+  .seg button{
+    appearance:none;border:1px solid var(--border);background:#111;color:var(--text);
+    padding:8px 12px;border-radius:999px;font-weight:700;cursor:pointer
   }
-  .status.ok{color: var(--ok);}
-  .status.bad{color: var(--bad);}
-  .tabs, .mode-tabs{
-    display:flex; gap:8px; padding: 10px 12px; background:#111; color:#eee;
-  }
-  .tabs button, .mode-tabs button{
-    appearance:none; border:none; padding:10px 14px; border-radius: 10px;
-    font-weight:700; cursor:pointer; background:#222; color:#ddd;
-    border:2px solid #333;
-  }
-  .tabs button.active, .mode-tabs button.active{
-    background:#fff; color:#111; border-color:#111;
-  }
-  .ticker{
-    display:block; width:100%; overflow:hidden; border-top:4px solid #111; border-bottom:4px solid #111; background:#111; color:#fff;
-  }
-  .ticker span{
-    display:inline-block; padding: 8px 16px; animation: scroll 25s linear infinite;
-    white-space:nowrap; font-weight:700; letter-spacing:.3px;
-  }
-  @keyframes scroll{
-    0%{ transform: translateX(100%); }
-    100%{ transform: translateX(-100%); }
-  }
-  table{
-    width:100%; border-collapse:collapse; font-size:18px;
-  }
-  thead th{
-    text-align:left; padding:10px 12px; background:#fff; border-bottom:3px solid #111;
-    position: sticky; top: 122px; z-index:2;
-  }
-  tbody td{
-    padding:12px; border-bottom:2px solid #111;
-    background: #fff;
-  }
-  .muted{color: var(--muted);}
-  .right{text-align:right;}
-  .line-badge{
-    display:inline-block; min-width:34px; text-align:center; font-weight:800; padding:2px 8px; border-radius: 8px; background:#111; color:#fff;
-  }
-  footer{
-    margin-top:auto; padding: 10px 14px; border-top:4px solid #111; background: #fff8b3;
-  }
-  .error{ color: var(--bad); font-weight:700; }
-  .ghost{ opacity:.6; }
+  .seg button.active{background:var(--accent);color:#111;border-color:#111}
+  .seg button.icon{border-radius:10px;padding:8px 10px}
+
+  .ticker{border-top:1px solid var(--border);border-bottom:1px solid var(--border);
+    background:#111;color:#fff;overflow:hidden}
+  .ticker span{display:inline-block;padding:8px 16px;white-space:nowrap;
+    animation:mar 25s linear infinite}
+  @keyframes mar{from{transform:translateX(100%)}to{transform:translateX(-100%)}}
+
+  table{width:100%;border-collapse:collapse}
+  thead th{position:sticky;top:132px;background:var(--panel);color:var(--muted);
+    padding:10px 12px;border-bottom:1px solid var(--border);text-align:left}
+  tbody td{padding:12px;border-bottom:1px solid var(--border)}
+  .right{text-align:right}
+  .badge{display:inline-block;min-width:34px;text-align:center;font-weight:800;
+    padding:2px 10px;border-radius:10px;background:var(--accent);color:#111}
+
+  footer{margin-top:auto;padding:10px 14px;border-top:1px solid var(--border);color:var(--muted)}
+  .error{color:var(--danger);font-weight:700}
+  .ghost{opacity:.6}
 </style>
 </head>
 <body>
-  <div class="board">
-    <header>
-      <div class="brand">BVG Anzeiger</div>
-      <div id="status" class="status ghost">lädt…</div>
-    </header>
+<div class="wrap">
+  <header>
+    <div class="brand">BVG Anzeiger</div>
+    <div id="status" class="status ghost">lädt…</div>
+  </header>
 
-    <div class="tabs" role="tablist" aria-label="Stationen">
+  <div class="seg" role="tablist" aria-label="Stationen">
+    <div class="row">
       <button class="active" id="tab-hahneberg" data-stop="900037203">Hahneberg</button>
       <button id="tab-reimerweg" data-stop="900000037274">Reimerweg</button>
     </div>
-
-    <div class="mode-tabs" role="tablist" aria-label="Modus">
+  </div>
+  <div class="seg" role="tablist" aria-label="Modus">
+    <div class="row">
       <button class="active" id="tab-dep" data-mode="departures">Abfahrten</button>
       <button id="tab-arr" data-mode="arrivals">Ankünfte</button>
-      <button id="tab-refresh" title="Neu laden">⟳</button>
+      <button id="tab-refresh" class="icon" title="Neu laden">⟳</button>
     </div>
-
-    <marquee class="ticker" behavior="scroll" direction="left" scrollamount="5">
-      <span id="ticker-text">Willkommen! Nächste Aktualisierung automatisch alle 20&nbsp;Sekunden.</span>
-    </marquee>
-
-    <div style="overflow:auto">
-      <table aria-live="polite" aria-busy="true">
-        <thead>
-          <tr>
-            <th style="width:10%">Linie</th>
-            <th>Ziel</th>
-            <th style="width:18%" class="right">Abfahrt</th>
-          </tr>
-        </thead>
-        <tbody id="rows">
-          <tr><td colspan="3" class="muted">Lade Daten…</td></tr>
-        </tbody>
-      </table>
-    </div>
-
-    <footer>
-      <div id="error" class="error" role="alert" aria-live="assertive"></div>
-      <div class="muted" style="font-size:14px">
-        Live-Daten: BVG / VBB • Anzeige für Hahneberg & Reimerweg
-      </div>
-    </footer>
   </div>
 
+  <div class="ticker"><span id="ticker">Willkommen! Nächste Aktualisierung automatisch alle 20 Sekunden.</span></div>
+
+  <div style="overflow:auto">
+    <table aria-live="polite" aria-busy="true">
+      <thead>
+        <tr>
+          <th style="width:12%">Linie</th>
+          <th>Ziel</th>
+          <th style="width:20%" class="right" id="th-when">Abfahrt</th>
+        </tr>
+      </thead>
+      <tbody id="rows">
+        <tr><td colspan="3" class="ghost">Lade Daten…</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <footer>
+    <div id="error" class="error" role="alert" aria-live="assertive"></div>
+    <div style="font-size:14px">Live-Daten: BVG / VBB • Anzeige für Hahneberg & Reimerweg</div>
+  </footer>
+</div>
+
 <script>
+const API_BASE = 'https://v5.vbb.transport.rest'; // stabil: /stations
 const statusEl = document.getElementById('status');
 const errorEl  = document.getElementById('error');
 const rowsEl   = document.getElementById('rows');
-const tickerEl = document.getElementById('ticker-text');
+const tickerEl = document.getElementById('ticker');
+const thWhen   = document.getElementById('th-when');
 
 let currentStop = document.querySelector('#tab-hahneberg').dataset.stop;
 let currentMode = 'departures';
-let timer;
+let timer = null;
 
-// ---- Robust fetch with endpoint fallback ----
-async function fetchWithFallback(stopId, mode){
-  const paths = ['stops', 'stations', 'stop-areas'];
-  const base = 'https://v5.vbb.transport.rest';
-  let lastStatus = '—', lastErr = null;
+// -------- helpers --------
+const fmtTime = (iso) => new Date(iso).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
+const mins = (iso) => Math.max(0, Math.round((new Date(iso)-new Date())/60000))+' min';
+const badge = (t) => `<span class="badge">${t||'?'}</span>`;
+function setStatus(code, ok){ statusEl.textContent = `HTTP ${code}`; statusEl.classList.toggle('ok', ok); statusEl.classList.toggle('bad', !ok); statusEl.classList.remove('ghost'); }
+function setError(msg){ errorEl.textContent = msg || ''; }
+function setTicker(txt){ tickerEl.textContent = txt; }
 
-  for (const p of paths){
-    const url = `${base}/${p}/${stopId}/${mode}?duration=40&remarks=true&pretty=false`;
-    console.log('Try:', url);
-    try{
-      const res = await fetch(url, { cache:'no-store' });
-      lastStatus = res.status;
+// -------- core fetch (stations only) --------
+function urlFor(stopId, mode){
+  const path = mode === 'arrivals' ? 'arrivals' : 'departures';
+  return `${API_BASE}/stations/${encodeURIComponent(stopId)}/${path}?duration=40&remarks=true&pretty=false`;
+}
 
-      if (res.ok){
-        const data = await res.json();
-        return {
-          status: res.status,
-          ok: true,
-          list: Array.isArray(data) ? data : (data[mode] || [])
-        };
-      }
-      // if not ok: try next path
-    }catch(e){
-      lastErr = e;
-      // try next path
+async function loadBoard(){
+  clearTimeout(timer);
+  setError('');
+  rowsEl.innerHTML = `<tr><td colspan="3" class="ghost">Lade Daten…</td></tr>`;
+  statusEl.classList.add('ghost');
+
+  try{
+    const res = await fetch(urlFor(currentStop, currentMode), {cache:'no-store'});
+    setStatus(res.status, res.ok);
+
+    if(!res.ok){
+      const t = await res.text();
+      setError(`Fehler beim Laden (${res.status}). ${t.slice(0,140)}…`);
+      rowsEl.innerHTML = `<tr><td colspan="3" class="ghost">Keine Daten.</td></tr>`;
+    }else{
+      const data = await res.json();
+      const list = Array.isArray(data) ? data : (data[currentMode] || []);
+      renderRows(list);
+      setTicker(`${list.length} Einträge • Aktualisiert: ${new Date().toLocaleTimeString()}`);
     }
+  }catch(err){
+    setStatus('—', false);
+    setError(`Netzwerkfehler: ${err && err.message ? err.message : err}`);
+    rowsEl.innerHTML = `<tr><td colspan="3" class="ghost">Offline?</td></tr>`;
+  }finally{
+    timer = setTimeout(loadBoard, 20000);
   }
-
-  if (lastErr) console.error('Fetch error:', lastErr);
-  return { status: lastStatus, ok: false, list: [] };
 }
 
-// ---- Helpers ----
-function fmtTime(iso){
-  const d = new Date(iso);
-  return d.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
-}
-function minutesFromNow(iso){
-  const diff = new Date(iso) - new Date();
-  const m = Math.max(0, Math.round(diff/60000));
-  return m + ' min';
-}
-function setStatus(code, ok){
-  statusEl.textContent = `HTTP ${code}`;
-  statusEl.classList.toggle('ok', ok);
-  statusEl.classList.toggle('bad', !ok);
-  statusEl.classList.remove('ghost');
-}
 function renderRows(list){
-  if(!list.length){
-    rowsEl.innerHTML = `<tr><td colspan="3" class="muted">Keine Einträge.</td></tr>`;
+  if(!list || !list.length){
+    rowsEl.innerHTML = `<tr><td colspan="3" class="ghost">Keine Einträge im Zeitfenster.</td></tr>`;
     return;
   }
-  list.sort((a,b)=>new Date(a.when||a.plannedWhen)-new Date(b.when||b.plannedWhen));
-  rowsEl.innerHTML = list.map(item=>{
-    const line = item?.line?.name || '?';
-    const dest = item?.direction || '—';
-    const when = item?.plannedWhen || item?.when;
-    const delayMin = item?.delay ? Math.round(item.delay/60) : 0;
+  // Sortierung: nächste Abfahrt/Ankunft zuerst
+  list.sort((a,b)=> new Date(a.when||a.plannedWhen||a.plannedDeparture||a.plannedArrival||0) - new Date(b.when||b.plannedWhen||b.plannedDeparture||b.plannedArrival||0));
+
+  rowsEl.innerHTML = list.map(it=>{
+    const line = it?.line?.name || it?.line?.id || '?';
+    const dest = it?.direction || it?.destination?.name || '—';
+    const planned = it.plannedWhen || it.when || it.plannedDeparture || it.plannedArrival;
+    const delayMin = Number.isFinite(it.delay) ? Math.round(it.delay/60) : 0;
     const delayTxt = delayMin ? ` (+${delayMin})` : '';
     return `<tr>
-      <td><span class="line-badge">${line}</span></td>
+      <td>${badge(line)}</td>
       <td>${dest}</td>
-      <td class="right"><strong>${fmtTime(when)}</strong> <span class="muted">(${minutesFromNow(when)})</span>${delayTxt}</td>
+      <td class="right"><strong>${fmtTime(planned)}</strong> <span class="ghost">(${mins(planned)})</span>${delayTxt}</td>
     </tr>`;
   }).join('');
 }
 
-// ---- Main load routine ----
-async function fetchAndRender(){
-  clearTimeout(timer);
-  errorEl.textContent = '';
-  rowsEl.innerHTML = `<tr><td colspan="3" class="muted">Lade Daten…</td></tr>`;
-  statusEl.classList.add('ghost');
-
-  const {status, ok, list} = await fetchWithFallback(currentStop, currentMode);
-  setStatus(status, ok);
-
-  if(!ok){
-    rowsEl.innerHTML = `<tr><td colspan="3" class="muted">Keine Daten (API-Fehler)</td></tr>`;
-    errorEl.textContent = 'Fehler beim Laden der Live-Daten';
-  } else {
-    renderRows(list);
-    tickerEl.textContent = `${list.length} Einträge • Aktualisiert: ${new Date().toLocaleTimeString()}`;
-  }
-
-  timer = setTimeout(fetchAndRender, 20000);
-}
-
-// ---- UI wiring ----
-document.querySelectorAll('.tabs button').forEach(btn=>{
+// -------- UI wiring --------
+document.querySelectorAll('.seg [data-stop]').forEach(btn=>{
   btn.addEventListener('click', ()=>{
-    document.querySelectorAll('.tabs button').forEach(b=>b.classList.remove('active'));
+    document.querySelectorAll('.seg [data-stop]').forEach(b=>b.classList.remove('active'));
     btn.classList.add('active');
     currentStop = btn.dataset.stop;
-    fetchAndRender();
+    loadBoard();
   });
 });
-document.querySelectorAll('.mode-tabs button[data-mode]').forEach(btn=>{
+
+document.querySelectorAll('.seg [data-mode]').forEach(btn=>{
   btn.addEventListener('click', ()=>{
-    document.querySelectorAll('.mode-tabs button[data-mode]').forEach(b=>b.classList.remove('active'));
+    document.querySelectorAll('.seg [data-mode]').forEach(b=>b.classList.remove('active'));
     btn.classList.add('active');
     currentMode = btn.dataset.mode;
-    document.querySelector('thead th.right').textContent =
-      currentMode === 'arrivals' ? 'Ankunft' : 'Abfahrt';
-    fetchAndRender();
+    thWhen.textContent = (currentMode==='arrivals') ? 'Ankunft' : 'Abfahrt';
+    loadBoard();
   });
 });
-document.getElementById('tab-refresh').addEventListener('click', fetchAndRender);
 
-// Initial load
-fetchAndRender();
+document.getElementById('tab-refresh').addEventListener('click', loadBoard);
+
+// initial
+loadBoard();
 </script>
 </body>
 </html>
