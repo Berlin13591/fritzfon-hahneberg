@@ -183,7 +183,7 @@
     try{
       statusEl.textContent = 'lädt…';
       const stopId = (stopMode==='hahneberg') ? STOP_HAHNEBERG : STOP_REIMERWEG;
-      const url = `${API}/stops/${encodeURIComponent(stopId)}/${endpoint}?duration=180&results=120&language=de&remarks=false`; 
+      const url = `${API}/stops/${encodeURIComponent(stopId)}/${endpoint}?duration=180&results=120&language=de&remarks=false`;
       const res = await fetch(url, {headers:{'accept':'application/json'}, cache:'no-store'});
       if(!res.ok){
         statusEl.textContent = `HTTP ${res.status}`;
