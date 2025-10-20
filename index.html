@@ -137,24 +137,39 @@ let currentStop = document.querySelector('#tab-hahneberg').dataset.stop;
 let currentMode = 'departures';
 let timer;
 
+// ---- Robust fetch with endpoint fallback ----
 async function fetchWithFallback(stopId, mode){
   const paths = ['stops', 'stations', 'stop-areas'];
   const base = 'https://v5.vbb.transport.rest';
-  for(const p of paths){
+  let lastStatus = '—', lastErr = null;
+
+  for (const p of paths){
     const url = `${base}/${p}/${stopId}/${mode}?duration=40&remarks=true&pretty=false`;
+    console.log('Try:', url);
     try{
-      const res = await fetch(url, {cache:'no-store'});
-      if(res.ok){
+      const res = await fetch(url, { cache:'no-store' });
+      lastStatus = res.status;
+
+      if (res.ok){
         const data = await res.json();
-        return {status: res.status, ok: true, list: Array.isArray(data) ? data : (data[mode]||[])};
-      } else {
-        return {status: res.status, ok: false, list: []};
+        return {
+          status: res.status,
+          ok: true,
+          list: Array.isArray(data) ? data : (data[mode] || [])
+        };
       }
-    }catch(e){}
+      // if not ok: try next path
+    }catch(e){
+      lastErr = e;
+      // try next path
+    }
   }
-  return {status:'—', ok:false, list:[]};
+
+  if (lastErr) console.error('Fetch error:', lastErr);
+  return { status: lastStatus, ok: false, list: [] };
 }
 
+// ---- Helpers ----
 function fmtTime(iso){
   const d = new Date(iso);
   return d.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
@@ -190,6 +205,7 @@ function renderRows(list){
   }).join('');
 }
 
+// ---- Main load routine ----
 async function fetchAndRender(){
   clearTimeout(timer);
   errorEl.textContent = '';
@@ -210,6 +226,7 @@ async function fetchAndRender(){
   timer = setTimeout(fetchAndRender, 20000);
 }
 
+// ---- UI wiring ----
 document.querySelectorAll('.tabs button').forEach(btn=>{
   btn.addEventListener('click', ()=>{
     document.querySelectorAll('.tabs button').forEach(b=>b.classList.remove('active'));
@@ -230,8 +247,8 @@ document.querySelectorAll('.mode-tabs button[data-mode]').forEach(btn=>{
 });
 document.getElementById('tab-refresh').addEventListener('click', fetchAndRender);
 
+// Initial load
 fetchAndRender();
 </script>
 </body>
 </html>
-
