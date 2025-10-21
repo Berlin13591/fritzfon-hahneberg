@@ -1,254 +1,162 @@
 <!doctype html>
 <html lang="de">
 <head>
-    <meta charset="utf-8"/>
-    <meta name="viewport" content="width=device-width, initial-scale=1"/>
-    <title>BVG Anzeige (Hahneberg/Reimerweg)</title>
-    <style>
-    :root {
-        --bvg-yellow: #ffd200;
-        --bg: #000;
-        --fg: #ffd200;
-        --dim: #8ea0b2;
-        --line: #2a3440;
-        --accent: #00c8ff;
-        --rowH: 48px;
-        --gap: 8px;
-        --font: ui-rounded, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, "DIN 1451 Fette Breitschrift", "DIN 2014", sans-serif;
-    }
-    *{box-sizing:border-box}
-    html, body{margin:0;background:var(--bg);color:var(--fg);font-family:var(--font)}
-    .wrap{max-width:980px;margin:0 auto;padding:12px}
-    .head{display:flex;align-items:center;justify-content:space-between;padding:6px 8px 2px}
-    .brand{display:flex;align-items:center;gap:10px}
-    .bvglogo{width:36px;height:36px;background:var(--bvg-yellow);color:#000;border-radius:6px;display:grid;place-items:center;font-weight:900;letter-spacing:.5px}
-    .title{font-weight:900;letter-spacing:.3px}
-    .right{display:flex;align-items:center;gap:12px}
-    .badge{background:var(--accent);color:#00121a;border-radius:999px;padding:4px 10px;font-weight:800;font-size:12px}
-    .small{color:var(--dim);font-size:12px}
-    .tabs{display:flex;gap:8px;margin:8px 8px 0}
-    .tabs button{background:#0a0e12;color:var(--fg);border:1px solid #171c22;border-radius:12px;padding:8px 12px;cursor:pointer}
-    .tabs button.active{background:var(--accent);color:#00121a;border:none}
-    .hdr{display:grid;grid-template-columns:120px 1fr 140px;align-items:end;color:var(--dim);padding:6px 10px;font-size:14px;border-bottom:1px solid var(--line)}
-    .list{margin-top:6px}
-    .row{display:grid;grid-template-columns:120px 1fr 140px;align-items:center;height:var(--rowH);padding:0 10px;margin-top:var(--gap);border-radius:14px;background:#0b1016}
-    .lincol{display:flex;align-items:center;gap:10px}
-    .badgeLine{min-width:74px;display:inline-flex;justify-content:center;align-items:center;height:34px;padding:0 12px;border-radius:9px;background:var(--bvg-yellow);color:#000;font-weight:900;font-size:22px}
-    .dir{position:relative;overflow:hidden;height:1.4em}
-    .mins{justify-self:end;font-weight:900;font-size:28px}
-    .unit{font-size:14px;color:var(--dim);margin-left:6px}
-    .tickerInner{white-space:nowrap;display:inline-block}
-    .err{color:#ff6b6b;margin:10px 10px 0;font-size:13px;display:none}
-    .footer{display:flex;justify-content:space-between;align-items:center;color:var(--dim);font-size:12px;margin:12px 10px 0}
-    </style>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>BVG Anzeige – Hahneberg (M37/M49)</title>
+<meta name="color-scheme" content="dark light"/>
+<style>
+  :root{--bvg:#ffd200;--bg:#000;--fg:#ffd200;--muted:#8ea0b2;--panel:#0b1016;--border:#1a1f27;--accent:#00c8ff}
+  *{box-sizing:border-box}html,body{margin:0;background:var(--bg);color:var(--fg);font-family:ui-rounded,system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial}
+  .wrap{max-width:980px;margin:0 auto;padding:12px}
+  .head{display:flex;justify-content:space-between;align-items:center;padding:6px 8px 2px}
+  .brand{display:flex;gap:10px;align-items:center}
+  .logo{width:36px;height:36px;border-radius:6px;background:var(--bvg);color:#000;display:grid;place-items:center;font-weight:900}
+  .right{display:flex;gap:12px;align-items:center}
+  .badge{background:var(--accent);color:#00121a;border-radius:999px;padding:4px 10px;font-weight:800;font-size:12px}
+  .small{color:var(--muted);font-size:12px}
+  .seg{display:flex;gap:8px;margin:8px 8px 0}
+  .seg button{background:#0a0e12;color:var(--fg);border:1px solid #171c22;border-radius:12px;padding:8px 12px;cursor:pointer}
+  .seg button.active{background:var(--accent);color:#00121a;border:none}
+  .hdr{display:grid;grid-template-columns:120px 1fr 140px;align-items:end;color:var(--muted);padding:6px 10px;font-size:14px;border-bottom:1px solid var(--border)}
+  .list{margin-top:6px}
+  .row{display:grid;grid-template-columns:120px 1fr 140px;align-items:center;height:48px;padding:0 10px;margin-top:8px;border-radius:14px;background:var(--panel)}
+  .lincol{display:flex;gap:10px;align-items:center}
+  .badgeLine{min-width:74px;height:34px;padding:0 12px;border-radius:9px;background:var(--bvg);color:#000;font-weight:900;display:inline-flex;align-items:center;justify-content:center;font-size:22px}
+  .dir{position:relative;overflow:hidden;height:1.4em}
+  .tickerInner{white-space:nowrap;display:inline-block}
+  .mins{justify-self:end;font-weight:900;font-size:28px}
+  .unit{font-size:14px;color:var(--muted);margin-left:6px}
+  .err{color:#ff6b6b;margin:10px 10px 0;display:none}
+  .ghost{opacity:.65}
+  footer{margin-top:12px;color:var(--muted);font-size:12px}
+</style>
 </head>
 <body>
-    <div class="wrap">
-        <div class="head">
-            <div class="brand">
-                <div class="bvglogo">BVG</div>
-                <div class="title">Echtzeit-Anzeige</div>
-            </div>
-            <div class="right">
-                <span id="status" class="small">lädt…</span>
-                <span id="badge" class="badge">30s</span>
-            </div>
-        </div>
+<div class="wrap">
+  <div class="head">
+    <div class="brand"><div class="logo">BVG</div><div style="font-weight:900">Echtzeit-Anzeige</div></div>
+    <div class="right"><span id="status" class="small">lädt…</span><span id="badge" class="badge">30s</span></div>
+  </div>
 
-        <div class="tabs">
-            <button id="tHahneberg" class="active">Hahneberg (M37/M49)</button>
-            <button id="tReimerweg">Reimerweg (M137)</button>
-            <span style="flex:1"></span>
-            <button id="tDeps" class="active">Abfahrten</button>
-            <button id="tArrs">Ankünfte</button>
-        </div>
+  <div class="seg" aria-label="Modus">
+    <button id="tDep" class="active">Abfahrten</button>
+    <button id="tArr">Ankünfte</button>
+  </div>
 
-        <div class="hdr">
-            <div>Linie</div>
-            <div>Ziel</div>
-            <div style="text-align:right">Abfahrt</div>
-        </div>
+  <div class="hdr"><div>Linie</div><div>Ziel</div><div id="thWhen" style="text-align:right">Abfahrt</div></div>
 
-        <div id="list" class="list"></div>
-        <div id="err" class="err"></div>
+  <div id="list" class="list"></div>
+  <div id="err" class="err" role="alert" aria-live="assertive"></div>
+  <footer>Ziel läuft bei Überlänge automatisch durch. • <span id="clock"></span></footer>
+</div>
 
-        <div class="footer">
-            <div class="small">Ziel läuft bei Überlänge automatisch durch.</div>
-            <div id="clock" class="small"></div>
-        </div>
-    </div>
+<script>
+(function(){
+  // --- feste ID & Settings (nur Hahneberg) ---
+  var API        = 'https://v6.vbb.transport.rest';
+  var STOP_ID    = '900037203';        // Hahneberg
+  var ENDPOINT   = 'departures';       // oder 'arrivals'
+  var LINE_SET   = {'M37':1,'37':1,'M49':1,'49':1}; // nur M37/M49 (inkl. 37/49)
 
-    <script>
-(function () {
-  var API = 'https://v6.vbb.transport.rest';
+  // --- DOM ---
+  var listEl=document.getElementById('list'), errEl=document.getElementById('err'),
+      statusEl=document.getElementById('status'), badgeEl=document.getElementById('badge'),
+      clockEl=document.getElementById('clock'), thWhen=document.getElementById('thWhen');
+  var tDep=document.getElementById('tDep'), tArr=document.getElementById('tArr');
 
-  // feste IDs
-  var STOP_HAHNEBERG = '900037203';
-  var STOP_REIMERWEG = '900000037274';
-
-  // DOM
-  var listEl   = document.getElementById('list');
-  var errEl    = document.getElementById('err');
-  var statusEl = document.getElementById('status');
-  var badgeEl  = document.getElementById('badge');
-  var clockEl  = document.getElementById('clock');
-
-  var tHah = document.getElementById('tHahneberg');
-  var tRei = document.getElementById('tReimerweg');
-  var tDep = document.getElementById('tDeps');
-  var tArr = document.getElementById('tArrs');
-
-  // Zustand
-  var stopMode = 'hahneberg';    // 'hahneberg' | 'reimerweg'
-  var endpoint = 'departures';   // 'departures' | 'arrivals'
-  // Hahneberg standard: M37/M49 + 37/49 als Fallback
-  var lineSet  = {'M37':1,'37':1,'M49':1,'49':1};
-
-  // Uhr unten rechts
-  function tickClock(){
-    clockEl.textContent = new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
-  }
-  setInterval(tickClock, 1000); tickClock();
+  // Uhr
+  function tick(){ clockEl.textContent=new Date().toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'}); }
+  setInterval(tick,1000); tick();
 
   // Helpers
-  function minutesLeft(iso){
-    var t = new Date(iso).getTime() - Date.now();
-    var m = Math.round(t/60000);
-    if (m < 0) m = 0;
-    return m;
+  function urlFor(mode){
+    var path = (mode==='arrivals')?'arrivals':'departures';
+    // Hahneberg braucht /stops → stabil ohne 404
+    return API + '/stops/' + encodeURIComponent(STOP_ID) + '/' + path + '?duration=180&results=120&language=de&remarks=false';
   }
-  function makeLineBadge(text){
-    var div = document.createElement('div');
-    div.className = 'badgeLine';
-    div.textContent = text;
-    return div;
-  }
-  function applyTicker(container, inner){
-    inner.style.transform = 'translateX(0)';
-    var wCont = container.clientWidth;
-    var wInner = inner.scrollWidth;
-    if (wInner <= wCont){ inner.style.animation = 'none'; return; }
-    var gap = 60;
-    var text = inner.textContent;
-    inner.innerHTML = '<span>'+text+'</span><span style="padding-left:'+gap+'px">'+text+'</span>';
-    var total = wInner + gap;
-    var dur = Math.max(8, Math.round(total/60));
-    var key = 'mq_' + Math.random().toString(36).slice(2);
-    var st = document.createElement('style');
-    st.textContent = '@keyframes '+key+'{0%{transform:translateX(0)}100%{transform:translateX(-'+total+'px)}}';
-    document.head.appendChild(st);
-    inner.style.willChange = 'transform';
-    inner.style.animation = key + ' ' + dur + 's linear infinite';
-  }
-  function rowFromItem(it){
-    var row = document.createElement('div'); row.className = 'row';
+  function minutesLeft(iso){ var m=Math.round((new Date(iso).getTime()-Date.now())/60000); return (m<0?0:m); }
+  function row(it){
+    var line=(it&&it.line&&it.line.name)?String(it.line.name):'?';
+    var dir =(it&&it.direction)?String(it.direction):(it&&it.destination&&it.destination.name)?String(it.destination.name):'—';
+    var when=(it&&(it.plannedWhen||it.when))?(it.plannedWhen||it.when):null;
 
-    var lineName = (it && it.line && it.line.name) ? String(it.line.name) : '?';
-    var lin = document.createElement('div'); lin.className = 'lincol';
-    lin.appendChild(makeLineBadge(lineName));
+    var r=document.createElement('div'); r.className='row';
+    var lin=document.createElement('div'); lin.className='lincol';
+    var b=document.createElement('div'); b.className='badgeLine'; b.textContent=line; lin.appendChild(b);
 
-    var dirWrap = document.createElement('div'); dirWrap.className = 'dir';
-    var dirInner = document.createElement('div'); dirInner.className = 'tickerInner';
-    var direction = (it && it.direction) ? String(it.direction)
-                   : (it && it.destination && it.destination.name) ? String(it.destination.name)
-                   : '—';
-    dirInner.textContent = direction.replace(/^Berlin,\s*/,'').trim();
-    dirWrap.appendChild(dirInner);
+    var w=document.createElement('div'); w.className='dir';
+    var inner=document.createElement('div'); inner.className='tickerInner'; inner.textContent=dir.replace(/^Berlin,\s*/,'').trim(); w.appendChild(inner);
 
-    var when = (it && (it.plannedWhen || it.when)) ? (it.plannedWhen || it.when) : null;
-    var mins = document.createElement('div'); mins.className = 'mins';
-    mins.innerHTML = when ? (minutesLeft(when) + '<span class="unit">min</span>') : '–';
+    var m=document.createElement('div'); m.className='mins'; m.innerHTML=when? (minutesLeft(when)+'<span class="unit">min</span>') : '–';
 
-    row.appendChild(lin); row.appendChild(dirWrap); row.appendChild(mins);
-    setTimeout(function(){ applyTicker(dirWrap, dirInner); }, 0);
-    return row;
+    r.appendChild(lin); r.appendChild(w); r.appendChild(m);
+
+    // einfacher Marquee
+    setTimeout(function(){
+      var wc=w.clientWidth, wi=inner.scrollWidth;
+      if(wi>wc){
+        var gap=60, txt=inner.textContent, total=wi+gap, dur=Math.max(8,Math.round(total/60));
+        inner.innerHTML='<span>'+txt+'</span><span style="padding-left:'+gap+'px">'+txt+'</span>';
+        var key='mq_'+Math.random().toString(36).slice(2);
+        var st=document.createElement('style');
+        st.textContent='@keyframes '+key+'{0%{transform:translateX(0)}100%{transform:translateX(-'+total+'px)}}';
+        document.head.appendChild(st);
+        inner.style.animation=key+' '+dur+'s linear infinite';
+      }
+    },0);
+
+    return r;
   }
   function render(list){
-    listEl.innerHTML = '';
-    errEl.style.display = 'none';
-    if(!list || !list.length){
-      var r = document.createElement('div'); r.className = 'row'; r.style.justifyContent='center';
-      r.innerHTML = '<div style="grid-column:1/4;text-align:center;font-weight:900">Keine Daten</div>';
-      listEl.appendChild(r); return;
+    listEl.innerHTML='';
+    if(!list||!list.length){
+      var rr=document.createElement('div'); rr.className='row'; rr.style.justifyContent='center';
+      rr.innerHTML='<div style="grid-column:1/4;text-align:center;font-weight:900">Keine Daten</div>';
+      listEl.appendChild(rr); return;
     }
-    for (var i=0;i<list.length && i<18;i++) listEl.appendChild(rowFromItem(list[i]));
+    for(var i=0;i<list.length&&i<18;i++) listEl.appendChild(row(list[i]));
   }
-  function setStatus(code, ok){
-    statusEl.textContent = 'HTTP ' + code + (ok ? '' : ' • Fehler');
-    statusEl.className = 'small'; // deine Styles bleiben
-  }
-  function urlFor(stopId, mode){
-    var path = (mode === 'arrivals') ? 'arrivals' : 'departures';
-    // stations = stabil für beide IDs
-    return API + '/stations/' + encodeURIComponent(stopId) + '/' + path + '?duration=180&results=120&language=de&remarks=false';
-  }
-  function sortByWhen(a,b){
-    var aw = (a && (a.when||a.plannedWhen)) ? new Date(a.when||a.plannedWhen).getTime() : 0;
-    var bw = (b && (b.when||b.plannedWhen)) ? new Date(b.when||b.plannedWhen).getTime() : 0;
-    return aw - bw;
-  }
-  function filterByLines(list){
-    var out = [];
-    for (var i=0;i<list.length;i++){
-      var nm = (list[i] && list[i].line && list[i].line.name) ? String(list[i].line.name).toUpperCase() : '';
-      if (lineSet[nm]) out.push(list[i]);
-    }
-    return out;
-  }
+  function setStatus(code, ok){ statusEl.textContent='HTTP '+code+(ok?'':' • Fehler'); }
 
   // Laden
-  var timerR=null, timerC=null, cd=30;
+  var timerR=null,timerC=null,cd=30;
   function startAuto(){
     if(timerR) clearInterval(timerR);
     if(timerC) clearInterval(timerC);
-    cd=30; badgeEl.textContent = cd+'s';
-    timerC = setInterval(function(){ cd--; if(cd<0) cd=30; badgeEl.textContent = cd+'s'; }, 1000);
-    timerR = setInterval(function(){ cd=30; load(); }, 30000);
+    cd=30; badgeEl.textContent=cd+'s';
+    timerC=setInterval(function(){ cd--; if(cd<0) cd=30; badgeEl.textContent=cd+'s'; },1000);
+    timerR=setInterval(function(){ cd=30; load(); },30000);
   }
 
   async function load(){
     try{
-      errEl.textContent=''; errEl.style.display='none';
-      listEl.innerHTML = '<div class="row" style="justify-content:center"><div style="grid-column:1/4" class="ghost">Lade Daten…</div></div>';
+      errEl.style.display='none';
+      listEl.innerHTML='<div class="row" style="justify-content:center"><div style="grid-column:1/4" class="ghost">Lade Daten…</div></div>';
 
-      var stopId = (stopMode==='hahneberg') ? STOP_HAHNEBERG : STOP_REIMERWEG;
-      var url = urlFor(stopId, endpoint);
+      var res=await fetch(urlFor(ENDPOINT), {cache:'no-store',headers:{accept:'application/json'}});
+      setStatus(res.status,res.ok);
+      if(!res.ok){ var t=await res.text(); errEl.textContent='Fehler: HTTP '+res.status+' • '+t.slice(0,120)+'…'; errEl.style.display='block'; render([]); return; }
 
-      var res = await fetch(url, {cache:'no-store', headers:{'accept':'application/json'}});
-      setStatus(res.status, res.ok);
-      if(!res.ok){
-        var t = await res.text();
-        errEl.textContent = 'Fehler: HTTP ' + res.status + ' • ' + t.slice(0,120) + '…';
-        errEl.style.display = 'block';
-        render([]); return;
-      }
-
-      var data = await res.json();
-      var list = Array.isArray(data) ? data : (data[endpoint] || []);
-      list = filterByLines(list).sort(sortByWhen);
-      render(list);
+      var data=await res.json();
+      var list=Array.isArray(data)?data:(data[ENDPOINT]||[]);
+      // nur M37/M49 (inkl. 37/49)
+      var filtered=[]; for(var i=0;i<list.length;i++){ var n=(list[i]&&list[i].line&&list[i].line.name)?String(list[i].line.name).toUpperCase():''; if(LINE_SET[n]) filtered.push(list[i]); }
+      filtered.sort(function(a,b){var aw=(a&&(a.when||a.plannedWhen))?new Date(a.when||a.plannedWhen).getTime():0; var bw=(b&&(b.when||b.plannedWhen))?new Date(b.when||b.plannedWhen).getTime():0; return aw-bw; });
+      render(filtered);
     }catch(e){
-      setStatus('—', false);
-      errEl.textContent = 'Netzwerkfehler: ' + (e && e.message ? e.message : String(e));
-      errEl.style.display = 'block';
-      render([]);
+      setStatus('—',false); errEl.textContent='Netzwerkfehler: '+(e&&e.message?e.message:String(e)); errEl.style.display='block'; render([]);
     }finally{
       startAuto();
     }
   }
 
-  // Tabs
-  function setTabs(){
-    tHah.classList.toggle('active', stopMode==='hahneberg');
-    tRei.classList.toggle('active', stopMode==='reimerweg');
-    tDep.classList.toggle('active', endpoint==='departures');
-    tArr.classList.toggle('active', endpoint==='arrivals');
-  }
-  tHah.onclick = function(){ stopMode='hahneberg'; lineSet={'M37':1,'37':1,'M49':1,'49':1}; setTabs(); load(); };
-  tRei.onclick = function(){ stopMode='reimerweg'; lineSet={'M137':1,'137':1}; setTabs(); load(); };
-  tDep.onclick = function(){ endpoint='departures'; setTabs(); load(); };
-  tArr.onclick = function(){ endpoint='arrivals';  setTabs(); load(); };
+  // UI
+  tDep.onclick=function(){ ENDPOINT='departures'; thWhen.textContent='Abfahrt'; tDep.classList.add('active'); tArr.classList.remove('active'); load(); };
+  tArr.onclick=function(){ ENDPOINT='arrivals';   thWhen.textContent='Ankunft'; tArr.classList.add('active'); tDep.classList.remove('active'); load(); };
 
-  setTabs(); load(); startAuto();
+  load(); startAuto();
 })();
 </script>
+</body>
+</html>
