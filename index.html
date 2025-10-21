@@ -3,89 +3,219 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>BVG Echtzeit – Hahneberg & Reimerweg</title>
-<meta name="color-scheme" content="dark light" />
+<title>BVG Anzeige (Hahneberg/Reimerweg)</title>
 <style>
   :root{
-    --bg:#0e0e10; --panel:#151518; --text:#e9e9ef; --muted:#a1a1aa;
-    --accent:#0dd3ff; --warn:#ff6b6b; --ok:#4caf50; --border:#242428; --bvg:#ffd200;
+    --bvg-yellow:#ffd200; --bg:#000; --fg:#ffd200; --dim:#8ea0b2;
+    --line:#2a3440; --accent:#00c8ff; --rowH:48px; --gap:8px;
+    --font: ui-rounded, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, "DIN 1451 Fette Breitschrift", "DIN 2014", sans-serif;
   }
-  *{box-sizing:border-box} html,body{height:100%}
-  body{margin:0;background:var(--bg);color:var(--text);
-       font-family: system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Cantarell,Noto Sans,Helvetica,Arial;}
-  .wrap{max-width:1100px;margin:0 auto;min-height:100%;display:flex;flex-direction:column}
-  header{position:sticky;top:0;z-index:3;display:flex;justify-content:space-between;align-items:center;
-         padding:14px 16px;background:var(--panel);border-bottom:1px solid var(--border)}
-  .brand{display:flex;gap:10px;align-items:center}
-  .bvg{width:36px;height:36px;border-radius:8px;background:var(--bvg);color:#000;display:grid;place-items:center;font-weight:900}
-  .status{font-variant-numeric:tabular-nums;font-weight:700;border:2px solid var(--border);background:#111;padding:6px 10px;border-radius:10px}
-  .status.ok{outline:2px solid var(--ok)} .status.bad{outline:2px solid var(--warn)}
-  .seg{display:flex;gap:8px;flex-wrap:wrap;padding:10px 12px;background:var(--panel);border-bottom:1px solid var(--border)}
-  .seg button{appearance:none;border:1px solid var(--border);background:#0a0e12;color:var(--text);
-              padding:8px 12px;border-radius:999px;font-weight:700;cursor:pointer}
-  .seg button.active{background:var(--accent);color:#00121a;border:none}
-  .seg button.icon{border-radius:10px;padding:8px 10px}
-  .ticker{border-top:1px solid var(--border);border-bottom:1px solid var(--border);background:#111;color:#fff;overflow:hidden}
-  .ticker span{display:inline-block;padding:8px 16px;white-space:nowrap;animation:mar 25s linear infinite}
-  @keyframes mar{from{transform:translateX(100%)}to{transform:translateX(-100%)}}
-  table{width:100%;border-collapse:collapse}
-  thead th{position:sticky;top:132px;background:var(--panel);color:var(--muted);padding:10px 12px;border-bottom:1px solid var(--border);text-align:left}
-  tbody td{padding:12px;border-bottom:1px solid var(--border)}
-  .right{text-align:right}
-  .badge{display:inline-block;min-width:44px;text-align:center;font-weight:900;padding:4px 12px;border-radius:10px;background:var(--bvg);color:#111}
-  .ghost{opacity:.65} .err{color:var(--warn);font-weight:700;margin:10px 12px 0}
-  footer{margin-top:auto;padding:10px 14px;border-top:1px solid var(--border);color:var(--muted);font-size:14px}
+  *{box-sizing:border-box}
+  html,body{margin:0;background:var(--bg);color:var(--fg);font-family:var(--font)}
+  .wrap{max-width:980px;margin:0 auto;padding:12px}
+  .head{display:flex;align-items:center;justify-content:space-between;padding:6px 8px 2px}
+  .brand{display:flex;align-items:center;gap:10px}
+  .bvglogo{width:36px;height:36px;background:var(--bvg-yellow);color:#000;border-radius:6px;
+           display:grid;place-items:center;font-weight:900;letter-spacing:.5px}
+  .title{font-weight:900;letter-spacing:.3px}
+  .right{display:flex;align-items:center;gap:12px}
+  .badge{background:var(--accent);color:#00121a;border-radius:999px;padding:4px 10px;font-weight:800;font-size:12px}
+  .small{color:var(--dim);font-size:12px}
+  .tabs{display:flex;gap:8px;margin:8px 8px 0}
+  .tabs button{background:#0a0e12;color:var(--fg);border:1px solid #171c22;border-radius:12px;padding:8px 12px;cursor:pointer}
+  .tabs button.active{background:var(--accent);color:#00121a;border:none}
+  .hdr{display:grid;grid-template-columns:120px 1fr 140px;align-items:end;color:var(--dim);
+       padding:6px 10px;font-size:14px;border-bottom:1px solid var(--line)}
+  .list{margin-top:6px}
+  .row{display:grid;grid-template-columns:120px 1fr 140px;align-items:center;height:var(--rowH);
+       padding:0 10px;margin-top:var(--gap);border-radius:14px;background:#0b1016}
+  .lincol{display:flex;align-items:center;gap:10px}
+  .badgeLine{min-width:74px;display:inline-flex;justify-content:center;align-items:center;height:34px;
+             padding:0 12px;border-radius:9px;background:var(--bvg-yellow);color:#000;font-weight:900;font-size:22px}
+  .dir{position:relative;overflow:hidden;height:1.4em}
+  .mins{justify-self:end;font-weight:900;font-size:28px}
+  .unit{font-size:14px;color:var(--dim);margin-left:6px}
+  .tickerInner{white-space:nowrap;display:inline-block}
+  .err{color:#ff6b6b;margin:10px 10px 0;font-size:13px;display:none}
+  .footer{display:flex;justify-content:space-between;align-items:center;color:var(--dim);
+          font-size:12px;margin:12px 10px 0}
 </style>
 </head>
 <body>
 <div class="wrap">
-  <header>
-    <div class="brand"><div class="bvg">BVG</div><div style="font-weight:900">Echtzeit-Anzeige</div></div>
-    <div id="status" class="status ghost">lädt…</div>
-  </header>
-
-  <!-- Stationen -->
-  <div class="seg" role="tablist" aria-label="Stationen">
-    <button id="tab-hahneberg" class="active" data-stop="900037203" data-lines="M37,M49">Hahneberg (M37/M49)</button>
-    <button id="tab-reimerweg" data-stop="900000037274" data-lines="M137,137">Reimerweg (M137)</button>
+  <div class="head">
+    <div class="brand">
+      <div class="bvglogo">BVG</div>
+      <div class="title">Echtzeit-Anzeige</div>
+    </div>
+    <div class="right">
+      <span id="status" class="small">lädt…</span>
+      <span id="badge" class="badge">30s</span>
+    </div>
   </div>
 
-  <!-- Modus -->
-  <div class="seg" role="tablist" aria-label="Modus">
-    <button id="tab-dep" class="active" data-mode="departures">Abfahrten</button>
-    <button id="tab-arr" data-mode="arrivals">Ankünfte</button>
+  <div class="tabs">
+    <button id="tHahneberg" class="active">Hahneberg (M37/M49)</button>
+    <button id="tReimerweg">Reimerweg (M137)</button>
     <span style="flex:1"></span>
-    <button id="tab-refresh" class="icon" title="Neu laden">⟳</button>
+    <button id="tDeps" class="active">Abfahrten</button>
+    <button id="tArrs">Ankünfte</button>
   </div>
 
-  <div class="ticker"><span id="ticker">Willkommen! Nächste Aktualisierung alle 20 Sekunden.</span></div>
-
-  <div style="overflow:auto">
-    <table aria-live="polite" aria-busy="true">
-      <thead>
-        <tr><th style="width:12%">Linie</th><th>Ziel</th><th id="th-when" style="width:20%" class="right">Abfahrt</th></tr>
-      </thead>
-      <tbody id="rows"><tr><td colspan="3" class="ghost">Lade Daten…</td></tr></tbody>
-    </table>
+  <div class="hdr">
+    <div>Linie</div><div>Ziel</div><div style="text-align:right">Abfahrt</div>
   </div>
 
-  <div id="err" class="err" role="alert" aria-live="assertive"></div>
-  <footer>Live-Daten: BVG/VBB • Anzeige für Hahneberg & Reimerweg</footer>
+  <div id="list" class="list"></div>
+  <div id="err" class="err"></div>
+
+  <div class="footer">
+    <div class="small">Ziel läuft bei Überlänge automatisch durch.</div>
+    <div id="clock" class="small"></div>
+  </div>
 </div>
 
 <script>
-const API_BASE = 'https://v6.vbb.transport.rest'; // <<< stations-only
-const statusEl = document.getElementById('status');
-const rowsEl   = document.getElementById('rows');
-const errEl    = document.getElementById('err');
-const tickerEl = document.getElementById('ticker');
-const thWhen   = document.getElementById('th-when');
+(() => {
+  const API = 'https://v6.vbb.transport.rest';
 
-let currentStop  = document.querySelector('#tab-hahneberg').dataset.stop;
-let currentLines = new Set(document.querySelector('#tab-hahneberg').dataset.lines.split(',').map(s=>s.toUpperCase()));
-let currentMode  = 'departures';
-let timer = null;
+  // Feste Stop-IDs
+  const STOP_HAHNEBERG = '900037203';    // Hahneberg/Reimerweg Richtung Stadt
+  const STOP_REIMERWEG = '900000037274'; // Reimerweg (lange VBB-ID)
 
-// helpers
-const fmtTime = iso => new Date(iso).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
-const mi
+  const listEl = document.getElementById('list');
+  const errEl  = document.getElementById('err');
+  const statusEl = document.getElementById('status');
+  const badge = document.getElementById('badge');
+  const clock = document.getElementById('clock');
+
+  const tHahneberg = document.getElementById('tHahneberg');
+  const tReimerweg = document.getElementById('tReimerweg');
+  const tDeps = document.getElementById('tDeps');
+  const tArrs = document.getElementById('tArrs');
+
+  let stopMode = 'hahneberg';      // oder 'reimerweg'
+  let endpoint = 'departures';     // oder 'arrivals'
+  let lineSet  = new Set(['M37','M49']); // für Hahneberg
+
+  // Uhr unten rechts
+  setInterval(() => {
+    clock.textContent = new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
+  }, 1000);
+
+  function setTabs() {
+    tHahneberg.classList.toggle('active', stopMode==='hahneberg');
+    tReimerweg.classList.toggle('active', stopMode==='reimerweg');
+    tDeps.classList.toggle('active', endpoint==='departures');
+    tArrs.classList.toggle('active', endpoint==='arrivals');
+  }
+
+  tHahneberg.onclick = () => { stopMode='hahneberg'; lineSet=new Set(['M37','M49']); setTabs(); load(); };
+  tReimerweg.onclick = () => { stopMode='reimerweg'; lineSet=new Set(['M137','137']); setTabs(); load(); };
+  tDeps.onclick = () => { endpoint='departures'; setTabs(); load(); };
+  tArrs.onclick = () => { endpoint='arrivals'; setTabs(); load(); };
+
+  function minutesLeft(iso){
+    const t = new Date(iso).getTime();
+    return Math.max(0, Math.round((t - Date.now())/60000));
+  }
+
+  function makeLineBadge(line){
+    const div = document.createElement('div');
+    div.className = 'badgeLine';
+    div.textContent = line;
+    return div;
+  }
+
+  function applyTicker(container, inner){
+    const wCont = container.clientWidth;
+    const wInner = inner.scrollWidth;
+    inner.style.transform='translateX(0)';
+    if(wInner <= wCont) { inner.style.animation='none'; return; }
+    const gap = 60;
+    const text = inner.textContent;
+    inner.innerHTML = `<span>${text}</span><span style="padding-left:${gap}px">${text}</span>`;
+    const totalStep = wInner + gap;
+    const duration = Math.max(8, Math.round(totalStep / 60));
+    const keyName = 'marq_'+Math.random().toString(36).slice(2);
+    const style = document.createElement('style');
+    style.textContent = `@keyframes ${keyName}{0%{transform:translateX(0)}100%{transform:translateX(-${totalStep}px)}}`;
+    document.head.appendChild(style);
+    inner.style.willChange='transform';
+    inner.style.animation = `${keyName} ${duration}s linear infinite`;
+  }
+
+  function makeRow(d){
+    const row = document.createElement('div');
+    row.className = 'row';
+    const lin = document.createElement('div');
+    lin.className = 'lincol';
+    lin.appendChild(makeLineBadge(d.line?.name || ''));
+    const dirWrap = document.createElement('div');
+    dirWrap.className = 'dir';
+    const dirInner = document.createElement('div');
+    dirInner.className = 'tickerInner';
+    dirInner.textContent = (d.direction || '').replace(/^Berlin,\s*/,'').trim();
+    dirWrap.appendChild(dirInner);
+    const mins = document.createElement('div');
+    mins.className = 'mins';
+    const mm = minutesLeft(d.when || d.plannedWhen);
+    mins.innerHTML = `${mm}<span class="unit">min</span>`;
+    row.appendChild(lin); row.appendChild(dirWrap); row.appendChild(mins);
+    requestAnimationFrame(()=>applyTicker(dirWrap, dirInner));
+    return row;
+  }
+
+  function render(list){
+    listEl.innerHTML = '';
+    errEl.style.display='none';
+    if(!list.length){
+      const r = document.createElement('div');
+      r.className = 'row';
+      r.style.justifyContent='center';
+      r.innerHTML = `<div style="grid-column:1/4;text-align:center;font-weight:900">Keine Daten</div>`;
+      listEl.appendChild(r); return;
+    }
+    list.forEach(d => listEl.appendChild(makeRow(d)));
+  }
+
+  async function load(){
+    try{
+      statusEl.textContent = 'lädt…';
+      const stopId = (stopMode==='hahneberg') ? STOP_HAHNEBERG : STOP_REIMERWEG;
+      const url = `${API}/stops/${encodeURIComponent(stopId)}/${endpoint}?duration=180&results=120&language=de&remarks=false`;
+      const res = await fetch(url, {headers:{'accept':'application/json'}, cache:'no-store'});
+      if(!res.ok){
+        statusEl.textContent = `HTTP ${res.status}`;
+        throw new Error(`HTTP ${res.status}`);
+      }
+      statusEl.textContent = `HTTP ${res.status}`;
+      const data = await res.json();
+      const list = Array.isArray(data) ? data : (data && data[endpoint] || []);
+      const filtered = list.filter(d => lineSet.has(String(d?.line?.name || '').toUpperCase())).slice(0, 18);
+      render(filtered);
+      statusEl.textContent += ` • aktualisiert ${new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}`;
+    }catch(e){
+      console.error(e);
+      render([]);
+      errEl.textContent = 'Fehler: ' + (e.message || String(e));
+      errEl.style.display = 'block';
+      statusEl.textContent += ' • Fehler';
+    }
+  }
+
+  // Auto-Refresh + Countdown
+  let cd=30, timerR=null, timerC=null;
+  function startAuto(){
+    if(timerR) clearInterval(timerR);
+    if(timerC) clearInterval(timerC);
+    cd=30; badge.textContent=cd+'s';
+    timerC=setInterval(()=>{ cd--; if(cd<0) cd=30; badge.textContent=cd+'s'; },1000);
+    timerR=setInterval(()=>{ cd=30; load(); },30000);
+  }
+
+  setTabs(); load(); startAuto();
+})();
+</script>
+</body>
+</html>
