@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>BVG Anzeige – Hahneberg (M37/M49)</title>
+<title>BVG Echtzeit – Hahneberg & Reimerweg</title>
 <meta name="color-scheme" content="dark light"/>
 <style>
   :root{--bvg:#ffd200;--bg:#000;--fg:#ffd200;--muted:#8ea0b2;--panel:#0b1016;--border:#1a1f27;--accent:#00c8ff}
@@ -27,6 +27,7 @@
   .tickerInner{white-space:nowrap;display:inline-block}
   .mins{justify-self:end;font-weight:900;font-size:28px}
   .unit{font-size:14px;color:var(--muted);margin-left:6px}
+  .info{color:var(--muted);margin:10px 10px 0}
   .err{color:#ff6b6b;margin:10px 10px 0;display:none}
   .ghost{opacity:.65}
   footer{margin-top:12px;color:var(--muted);font-size:12px}
@@ -39,6 +40,13 @@
     <div class="right"><span id="status" class="small">lädt…</span><span id="badge" class="badge">30s</span></div>
   </div>
 
+  <!-- Stationen -->
+  <div class="seg" aria-label="Stationen">
+    <button id="tHah" class="active">Hahneberg (M37/M49)</button>
+    <button id="tRei">Reimerweg (M137)</button>
+  </div>
+
+  <!-- Modus -->
   <div class="seg" aria-label="Modus">
     <button id="tDep" class="active">Abfahrten</button>
     <button id="tArr">Ankünfte</button>
@@ -47,35 +55,61 @@
   <div class="hdr"><div>Linie</div><div>Ziel</div><div id="thWhen" style="text-align:right">Abfahrt</div></div>
 
   <div id="list" class="list"></div>
+  <div id="info" class="info"></div>
   <div id="err" class="err" role="alert" aria-live="assertive"></div>
   <footer>Ziel läuft bei Überlänge automatisch durch. • <span id="clock"></span></footer>
 </div>
 
 <script>
 (function(){
-  // --- feste ID & Settings (nur Hahneberg) ---
-  var API        = 'https://v6.vbb.transport.rest';
-  var STOP_ID    = '900037203';        // Hahneberg
-  var ENDPOINT   = 'departures';       // oder 'arrivals'
-  var LINE_SET   = {'M37':1,'37':1,'M49':1,'49':1}; // nur M37/M49 (inkl. 37/49)
+  // IDs
+  var STOP_HAHNEBERG = '900037203';
+  var STOP_REIMERWEG = '900000037274';
+  var API = 'https://v6.vbb.transport.rest';
 
-  // --- DOM ---
-  var listEl=document.getElementById('list'), errEl=document.getElementById('err'),
-      statusEl=document.getElementById('status'), badgeEl=document.getElementById('badge'),
-      clockEl=document.getElementById('clock'), thWhen=document.getElementById('thWhen');
-  var tDep=document.getElementById('tDep'), tArr=document.getElementById('tArr');
+  // DOM
+  var listEl=document.getElementById('list'), infoEl=document.getElementById('info'),
+      errEl=document.getElementById('err'), statusEl=document.getElementById('status'),
+      badgeEl=document.getElementById('badge'), clockEl=document.getElementById('clock'),
+      thWhen=document.getElementById('thWhen');
+  var tHah=document.getElementById('tHah'), tRei=document.getElementById('tRei'),
+      tDep=document.getElementById('tDep'), tArr=document.getElementById('tArr');
+
+  // State
+  var stopMode='hahneberg';   // 'hahneberg' | 'reimerweg'
+  var endpoint='departures';  // 'departures' | 'arrivals'
+  var lineSet={'M37':1,'37':1,'M49':1,'49':1}; // default: Hahneberg
 
   // Uhr
   function tick(){ clockEl.textContent=new Date().toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'}); }
   setInterval(tick,1000); tick();
 
-  // Helpers
+  // URL je Station
   function urlFor(mode){
-    var path = (mode==='arrivals')?'arrivals':'departures';
-    // Hahneberg braucht /stops → stabil ohne 404
-    return API + '/stops/' + encodeURIComponent(STOP_ID) + '/' + path + '?duration=180&results=120&language=de&remarks=false';
+    var path=(mode==='arrivals')?'arrivals':'departures';
+    if (stopMode==='hahneberg'){
+      // Hahneberg funktioniert zuverlässig über /stops
+      return API + '/stops/' + encodeURIComponent(STOP_HAHNEBERG) + '/' + path + '?duration=180&results=120&language=de&remarks=false';
+    } else {
+      // Reimerweg braucht /stations
+      return API + '/stations/' + encodeURIComponent(STOP_REIMERWEG) + '/' + path + '?duration=180&results=120&language=de&remarks=false';
+    }
   }
+
+  // Helpers
   function minutesLeft(iso){ var m=Math.round((new Date(iso).getTime()-Date.now())/60000); return (m<0?0:m); }
+  function setStatus(code, kind){ // kind: 'ok' | 'hint' | 'err'
+    var suffix = kind==='hint' ? ' • Hinweis' : (kind==='err' ? ' • Fehler' : '');
+    statusEl.textContent = 'HTTP ' + code + suffix;
+  }
+  function setTabs(){
+    tHah.classList.toggle('active', stopMode==='hahneberg');
+    tRei.classList.toggle('active', stopMode==='reimerweg');
+    tDep.classList.toggle('active', endpoint==='departures');
+    tArr.classList.toggle('active', endpoint==='arrivals');
+    thWhen.textContent = endpoint==='arrivals' ? 'Ankunft' : 'Abfahrt';
+  }
+
   function row(it){
     var line=(it&&it.line&&it.line.name)?String(it.line.name):'?';
     var dir =(it&&it.direction)?String(it.direction):(it&&it.destination&&it.destination.name)?String(it.destination.name):'—';
@@ -108,18 +142,32 @@
 
     return r;
   }
-  function render(list){
-    listEl.innerHTML='';
-    if(!list||!list.length){
+
+  function render(list, message){
+    listEl.innerHTML=''; infoEl.textContent=''; errEl.style.display='none';
+    if(message==='no-arrivals'){
       var rr=document.createElement('div'); rr.className='row'; rr.style.justifyContent='center';
-      rr.innerHTML='<div style="grid-column:1/4;text-align:center;font-weight:900">Keine Daten</div>';
+      rr.innerHTML='<div style="grid-column:1/4;text-align:center;font-weight:900">Für diese Haltestelle stellt die BVG keine Ankunftsdaten bereit.</div>';
       listEl.appendChild(rr); return;
+    }
+    if(!list||!list.length){
+      var r=document.createElement('div'); r.className='row'; r.style.justifyContent='center';
+      r.innerHTML='<div style="grid-column:1/4;text-align:center;font-weight:900">Keine Daten</div>';
+      listEl.appendChild(r); return;
     }
     for(var i=0;i<list.length&&i<18;i++) listEl.appendChild(row(list[i]));
   }
-  function setStatus(code, ok){ statusEl.textContent='HTTP '+code+(ok?'':' • Fehler'); }
 
-  // Laden
+  function filterByLines(list){
+    var out=[], i, nm;
+    for(i=0;i<list.length;i++){
+      nm = (list[i]&&list[i].line&&list[i].line.name)? String(list[i].line.name).toUpperCase() : '';
+      if(lineSet[nm]) out.push(list[i]);
+    }
+    return out;
+  }
+
+  // Auto-Refresh
   var timerR=null,timerC=null,cd=30;
   function startAuto(){
     if(timerR) clearInterval(timerR);
@@ -134,28 +182,50 @@
       errEl.style.display='none';
       listEl.innerHTML='<div class="row" style="justify-content:center"><div style="grid-column:1/4" class="ghost">Lade Daten…</div></div>';
 
-      var res=await fetch(urlFor(ENDPOINT), {cache:'no-store',headers:{accept:'application/json'}});
-      setStatus(res.status,res.ok);
-      if(!res.ok){ var t=await res.text(); errEl.textContent='Fehler: HTTP '+res.status+' • '+t.slice(0,120)+'…'; errEl.style.display='block'; render([]); return; }
-
+      var url=urlFor(endpoint);
+      var res=await fetch(url, {cache:'no-store', headers:{accept:'application/json'}});
+      if(!res.ok){
+        // Option C: 404 bei Arrivals → neutraler Hinweis statt Fehler
+        if(res.status===404 && endpoint==='arrivals'){
+          setStatus(404,'hint'); render(null,'no-arrivals'); return;
+        }
+        setStatus(res.status,'err');
+        var t=await res.text();
+        errEl.textContent='Fehler: HTTP '+res.status+' • '+t.slice(0,120)+'…';
+        errEl.style.display='block'; render([]); return;
+      }
+      setStatus(200,'ok');
       var data=await res.json();
-      var list=Array.isArray(data)?data:(data[ENDPOINT]||[]);
-      // nur M37/M49 (inkl. 37/49)
-      var filtered=[]; for(var i=0;i<list.length;i++){ var n=(list[i]&&list[i].line&&list[i].line.name)?String(list[i].line.name).toUpperCase():''; if(LINE_SET[n]) filtered.push(list[i]); }
-      filtered.sort(function(a,b){var aw=(a&&(a.when||a.plannedWhen))?new Date(a.when||a.plannedWhen).getTime():0; var bw=(b&&(b.when||b.plannedWhen))?new Date(b.when||b.plannedWhen).getTime():0; return aw-bw; });
-      render(filtered);
+      var list=Array.isArray(data)?data:(data[endpoint]||[]);
+      list = filterByLines(list).sort(function(a,b){
+        var aw=(a&&(a.when||a.plannedWhen))?new Date(a.when||a.plannedWhen).getTime():0;
+        var bw=(b&&(b.when||b.plannedWhen))?new Date(b.when||b.plannedWhen).getTime():0;
+        return aw-bw;
+      });
+      render(list);
     }catch(e){
-      setStatus('—',false); errEl.textContent='Netzwerkfehler: '+(e&&e.message?e.message:String(e)); errEl.style.display='block'; render([]);
+      setStatus('—','err'); errEl.textContent='Netzwerkfehler: '+(e&&e.message?e.message:String(e));
+      errEl.style.display='block'; render([]);
     }finally{
       startAuto();
     }
   }
 
-  // UI
-  tDep.onclick=function(){ ENDPOINT='departures'; thWhen.textContent='Abfahrt'; tDep.classList.add('active'); tArr.classList.remove('active'); load(); };
-  tArr.onclick=function(){ ENDPOINT='arrivals';   thWhen.textContent='Ankunft'; tArr.classList.add('active'); tDep.classList.remove('active'); load(); };
+  // Tab-Events
+  tHah.onclick=function(){
+    stopMode='hahneberg';
+    lineSet={'M37':1,'37':1,'M49':1,'49':1};
+    setTabs(); load();
+  };
+  tRei.onclick=function(){
+    stopMode='reimerweg';
+    lineSet={'M137':1,'137':1};
+    setTabs(); load();
+  };
+  tDep.onclick=function(){ endpoint='departures'; setTabs(); load(); };
+  tArr.onclick=function(){ endpoint='arrivals';   setTabs(); load(); };
 
-  load(); startAuto();
+  setTabs(); load(); startAuto();
 })();
 </script>
 </body>
