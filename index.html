@@ -76,146 +76,144 @@
 </div>
 
 <script>
-(() => {
-  const API = 'https://v6.vbb.transport.rest';
+(function () {
+  var API_BASE = 'https://v6.vbb.transport.rest'; // stations-only, stabil
 
-  // Feste Stop-IDs
-  const STOP_HAHNEBERG = '900037203';    // Hahneberg/Reimerweg Richtung Stadt
-  const STOP_REIMERWEG = '900000037274'; // Reimerweg (lange VBB-ID)
+  // feste IDs
+  var STOP_HAHNEBERG = '900037203';
+  var STOP_REIMERWEG = '900000037274';
 
-  const listEl = document.getElementById('list');
-  const errEl  = document.getElementById('err');
-  const statusEl = document.getElementById('status');
-  const badge = document.getElementById('badge');
-  const clock = document.getElementById('clock');
+  // DOM
+  var listEl   = document.getElementById('list');
+  var errEl    = document.getElementById('err');
+  var statusEl = document.getElementById('status');
+  var badgeEl  = document.getElementById('badge');
+  var clockEl  = document.getElementById('clock');
 
-  const tHahneberg = document.getElementById('tHahneberg');
-  const tReimerweg = document.getElementById('tReimerweg');
-  const tDeps = document.getElementById('tDeps');
-  const tArrs = document.getElementById('tArrs');
+  var tHah = document.getElementById('tHahneberg');
+  var tRei = document.getElementById('tReimerweg');
+  var tDep = document.getElementById('tDeps');
+  var tArr = document.getElementById('tArrs');
 
-  let stopMode = 'hahneberg';      // oder 'reimerweg'
-  let endpoint = 'departures';     // oder 'arrivals'
-  let lineSet  = new Set(['M37','M49']); // für Hahneberg
+  // Zustand
+  var stopMode = 'hahneberg';       // 'hahneberg' | 'reimerweg'
+  var endpoint = 'departures';      // 'departures' | 'arrivals'
+  var lineSet  = {'M37':1,'M49':1}; // wird bei Tabwechsel neu gesetzt
+  var timerR = null, timerC = null, cd = 30;
 
-  // Uhr unten rechts
-  setInterval(() => {
-    clock.textContent = new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
-  }, 1000);
-
-  function setTabs() {
-    tHahneberg.classList.toggle('active', stopMode==='hahneberg');
-    tReimerweg.classList.toggle('active', stopMode==='reimerweg');
-    tDeps.classList.toggle('active', endpoint==='departures');
-    tArrs.classList.toggle('active', endpoint==='arrivals');
+  // Helfer
+  function fmtTime(iso){
+    var d = new Date(iso);
+    return d.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
   }
-
-  tHahneberg.onclick = () => { stopMode='hahneberg'; lineSet=new Set(['M37','M49']); setTabs(); load(); };
-  tReimerweg.onclick = () => { stopMode='reimerweg'; lineSet=new Set(['M137','137']); setTabs(); load(); };
-  tDeps.onclick = () => { endpoint='departures'; setTabs(); load(); };
-  tArrs.onclick = () => { endpoint='arrivals'; setTabs(); load(); };
-
   function minutesLeft(iso){
-    const t = new Date(iso).getTime();
-    return Math.max(0, Math.round((t - Date.now())/60000));
+    var t = new Date(iso).getTime() - Date.now();
+    var m = Math.round(t/60000);
+    if (m < 0) m = 0;
+    return m + ' min';
   }
-
-  function makeLineBadge(line){
-    const div = document.createElement('div');
+  function setStatus(code, ok){
+    statusEl.textContent = 'HTTP ' + code + (ok ? '' : '');
+    statusEl.className = 'status' + (ok ? ' ok' : ' bad');
+  }
+  function setErr(msg){
+    errEl.textContent = msg || '';
+    errEl.style.display = msg ? 'block' : 'none';
+  }
+  function setTabs(){
+    tHah.classList.toggle('active', stopMode==='hahneberg');
+    tRei.classList.toggle('active', stopMode==='reimerweg');
+    tDep.classList.toggle('active', endpoint==='departures');
+    tArr.classList.toggle('active', endpoint==='arrivals');
+  }
+  function badgeLine(text){
+    var div = document.createElement('div');
     div.className = 'badgeLine';
-    div.textContent = line;
+    div.textContent = text;
     return div;
   }
-
   function applyTicker(container, inner){
-    const wCont = container.clientWidth;
-    const wInner = inner.scrollWidth;
-    inner.style.transform='translateX(0)';
-    if(wInner <= wCont) { inner.style.animation='none'; return; }
-    const gap = 60;
-    const text = inner.textContent;
-    inner.innerHTML = `<span>${text}</span><span style="padding-left:${gap}px">${text}</span>`;
-    const totalStep = wInner + gap;
-    const duration = Math.max(8, Math.round(totalStep / 60));
-    const keyName = 'marq_'+Math.random().toString(36).slice(2);
-    const style = document.createElement('style');
-    style.textContent = `@keyframes ${keyName}{0%{transform:translateX(0)}100%{transform:translateX(-${totalStep}px)}}`;
+    // einfacher Ticker, ohne moderne API
+    inner.style.transform = 'translateX(0)';
+    var wCont = container.clientWidth;
+    var wInner = inner.scrollWidth;
+    if (wInner <= wCont){
+      inner.style.animation = 'none';
+      return;
+    }
+    var gap = 60;
+    var txt = inner.textContent;
+    inner.innerHTML = '<span>'+txt+'</span><span style="padding-left:'+gap+'px">'+txt+'</span>';
+    var total = wInner + gap;
+    var dur = Math.max(8, Math.round(total/60));
+    var key = 'mq_' + Math.random().toString(36).slice(2);
+    var style = document.createElement('style');
+    style.textContent = '@keyframes '+key+'{0%{transform:translateX(0)}100%{transform:translateX(-'+total+'px)}}';
     document.head.appendChild(style);
-    inner.style.willChange='transform';
-    inner.style.animation = `${keyName} ${duration}s linear infinite`;
+    inner.style.willChange = 'transform';
+    inner.style.animation = key + ' ' + dur + 's linear infinite';
   }
+  function rowFromItem(it){
+    var row = document.createElement('div'); row.className = 'row';
+    var lin = document.createElement('div'); lin.className = 'lincol';
+    var lineName = it && it.line && it.line.name ? String(it.line.name) : '?';
+    lin.appendChild(badgeLine(lineName));
 
-  function makeRow(d){
-    const row = document.createElement('div');
-    row.className = 'row';
-    const lin = document.createElement('div');
-    lin.className = 'lincol';
-    lin.appendChild(makeLineBadge(d.line?.name || ''));
-    const dirWrap = document.createElement('div');
-    dirWrap.className = 'dir';
-    const dirInner = document.createElement('div');
-    dirInner.className = 'tickerInner';
-    dirInner.textContent = (d.direction || '').replace(/^Berlin,\s*/,'').trim();
+    var dirWrap = document.createElement('div'); dirWrap.className = 'dir';
+    var dirInner = document.createElement('div'); dirInner.className = 'tickerInner';
+    var direction = (it && it.direction) ? String(it.direction) : (it && it.destination && it.destination.name ? String(it.destination.name) : '—');
+    dirInner.textContent = direction.replace(/^Berlin,\s*/,'').trim();
     dirWrap.appendChild(dirInner);
-    const mins = document.createElement('div');
-    mins.className = 'mins';
-    const mm = minutesLeft(d.when || d.plannedWhen);
-    mins.innerHTML = `${mm}<span class="unit">min</span>`;
+
+    var mins = document.createElement('div'); mins.className = 'mins';
+    var when = (it && (it.plannedWhen || it.when)) ? (it.plannedWhen || it.when) : null;
+    mins.innerHTML = when ? (minutesLeft(when) + '<span class="unit">min</span>') : '–';
+
     row.appendChild(lin); row.appendChild(dirWrap); row.appendChild(mins);
-    requestAnimationFrame(()=>applyTicker(dirWrap, dirInner));
+    setTimeout(function(){ applyTicker(dirWrap, dirInner); }, 0);
     return row;
   }
-
   function render(list){
     listEl.innerHTML = '';
-    errEl.style.display='none';
-    if(!list.length){
-      const r = document.createElement('div');
-      r.className = 'row';
-      r.style.justifyContent='center';
-      r.innerHTML = `<div style="grid-column:1/4;text-align:center;font-weight:900">Keine Daten</div>`;
+    if (!list || !list.length){
+      var r = document.createElement('div'); r.className = 'row'; r.style.justifyContent='center';
+      r.innerHTML = '<div style="grid-column:1/4;text-align:center;font-weight:900">Keine Daten</div>';
       listEl.appendChild(r); return;
     }
-    list.forEach(d => listEl.appendChild(makeRow(d)));
+    for (var i=0; i<list.length && i<18; i++) listEl.appendChild(rowFromItem(list[i]));
   }
+
+  function urlFor(stopId, mode){
+    var path = (mode === 'arrivals') ? 'arrivals' : 'departures';
+    return API_BASE + '/stations/' + encodeURIComponent(stopId) + '/' + path + '?duration=180&results=120&language=de&remarks=false';
+  }
+
+  function sortByWhen(a,b){
+    var aw = (a && (a.when || a.plannedWhen)) ? new Date(a.when || a.plannedWhen).getTime() : 0;
+    var bw = (b && (b.when || b.plannedWhen)) ? new Date(b.when || b.plannedWhen).getTime() : 0;
+    return aw - bw;
+  }
+
+  function filterByLines(list){
+    var out = [];
+    for (var i=0; i<list.length; i++){
+      var nm = (list[i] && list[i].line && list[i].line.name) ? String(list[i].line.name).toUpperCase() : '';
+      if (lineSet[nm]) out.push(list[i]);
+      // Hahneberg: M37/M49, Reimerweg: M137/137
+      if (!lineSet[nm] && lineSet['137'] && nm === '137') out.push(list[i]);
+    }
+    return out;
+  }
+
+  function setClock(){
+    clockEl.textContent = new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
+  }
+  setInterval(setClock, 1000); setClock();
 
   async function load(){
-    try{
-      statusEl.textContent = 'lädt…';
-      const stopId = (stopMode==='hahneberg') ? STOP_HAHNEBERG : STOP_REIMERWEG;
-      const url = `${API}/stops/${encodeURIComponent(stopId)}/${endpoint}?duration=180&results=120&language=de&remarks=false`;
-      const res = await fetch(url, {headers:{'accept':'application/json'}, cache:'no-store'});
-      if(!res.ok){
-        statusEl.textContent = `HTTP ${res.status}`;
-        throw new Error(`HTTP ${res.status}`);
-      }
-      statusEl.textContent = `HTTP ${res.status}`;
-      const data = await res.json();
-      const list = Array.isArray(data) ? data : (data && data[endpoint] || []);
-      const filtered = list.filter(d => lineSet.has(String(d?.line?.name || '').toUpperCase())).slice(0, 18);
-      render(filtered);
-      statusEl.textContent += ` • aktualisiert ${new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}`;
-    }catch(e){
-      console.error(e);
-      render([]);
-      errEl.textContent = 'Fehler: ' + (e.message || String(e));
-      errEl.style.display = 'block';
-      statusEl.textContent += ' • Fehler';
-    }
-  }
+    clearInterval(timerR);
+    setErr('');
+    listEl.innerHTML = '<div class="row" style="justify-content:center"><div style="grid-column:1/4" class="ghost">Lade Daten…</div></div>';
+    statusEl.textContent = 'lädt…';
 
-  // Auto-Refresh + Countdown
-  let cd=30, timerR=null, timerC=null;
-  function startAuto(){
-    if(timerR) clearInterval(timerR);
-    if(timerC) clearInterval(timerC);
-    cd=30; badge.textContent=cd+'s';
-    timerC=setInterval(()=>{ cd--; if(cd<0) cd=30; badge.textContent=cd+'s'; },1000);
-    timerR=setInterval(()=>{ cd=30; load(); },30000);
-  }
-
-  setTabs(); load(); startAuto();
-})();
-</script>
-</body>
-</html>
+    var stopId = (stopMode
