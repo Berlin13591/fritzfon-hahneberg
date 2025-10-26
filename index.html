@@ -1,232 +1,281 @@
 <!doctype html>
 <html lang="de">
 <head>
-<meta charset="utf-8"/>
-<meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>BVG Echtzeit – Hahneberg & Reimerweg</title>
-<meta name="color-scheme" content="dark light"/>
-<style>
-  :root{--bvg:#ffd200;--bg:#000;--fg:#ffd200;--muted:#8ea0b2;--panel:#0b1016;--border:#1a1f27;--accent:#00c8ff}
-  *{box-sizing:border-box}html,body{margin:0;background:var(--bg);color:var(--fg);font-family:ui-rounded,system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial}
-  .wrap{max-width:980px;margin:0 auto;padding:12px}
-  .head{display:flex;justify-content:space-between;align-items:center;padding:6px 8px 2px}
-  .brand{display:flex;gap:10px;align-items:center}
-  .logo{width:36px;height:36px;border-radius:6px;background:var(--bvg);color:#000;display:grid;place-items:center;font-weight:900}
-  .right{display:flex;gap:12px;align-items:center}
-  .badge{background:var(--accent);color:#00121a;border-radius:999px;padding:4px 10px;font-weight:800;font-size:12px}
-  .small{color:var(--muted);font-size:12px}
-  .seg{display:flex;gap:8px;margin:8px 8px 0}
-  .seg button{background:#0a0e12;color:var(--fg);border:1px solid #171c22;border-radius:12px;padding:8px 12px;cursor:pointer}
-  .seg button.active{background:var(--accent);color:#00121a;border:none}
-  .hdr{display:grid;grid-template-columns:120px 1fr 140px;align-items:end;color:var(--muted);padding:6px 10px;font-size:14px;border-bottom:1px solid var(--border)}
-  .list{margin-top:6px}
-  .row{display:grid;grid-template-columns:120px 1fr 140px;align-items:center;height:48px;padding:0 10px;margin-top:8px;border-radius:14px;background:var(--panel)}
-  .lincol{display:flex;gap:10px;align-items:center}
-  .badgeLine{min-width:74px;height:34px;padding:0 12px;border-radius:9px;background:var(--bvg);color:#000;font-weight:900;display:inline-flex;align-items:center;justify-content:center;font-size:22px}
-  .dir{position:relative;overflow:hidden;height:1.4em}
-  .tickerInner{white-space:nowrap;display:inline-block}
-  .mins{justify-self:end;font-weight:900;font-size:28px}
-  .unit{font-size:14px;color:var(--muted);margin-left:6px}
-  .info{color:var(--muted);margin:10px 10px 0}
-  .err{color:#ff6b6b;margin:10px 10px 0;display:none}
-  .ghost{opacity:.65}
-  footer{margin-top:12px;color:var(--muted);font-size:12px}
-</style>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+  <title>Hahneberg – M37/M49</title>
+  <style>
+    /* ===== THEME VARIABLES (Option B) ===== */
+    :root {
+      color-scheme: light;
+      /* Light Mode (default) */
+      --fg:#111;              /* general text */
+      --bg:#fff;              /* background */
+      --muted:#666;           /* secondary text */
+      --accent:#006CFF;       /* generic accent */
+      /* Buttons */
+      --btn-inactive-bg:#e9eaee;
+      --btn-inactive-fg:#111;
+      --btn-active-bg:#0076FF;
+      --btn-active-fg:#ffffff;
+      /* Other */
+      --line-badge-bg:#FFD200;
+      --line-badge-fg:#000;
+      --card-bg: rgba(127,127,127,0.08);
+      --border: rgba(127,127,127,0.35);
+    }
+    .dark {
+      color-scheme: dark;
+      /* Dark Mode */
+      --fg:#FFD200;           /* YELLOW text in dark */
+      --bg:#000;
+      --muted:#aaa;
+      --accent:#006CFF;
+      /* Buttons */
+      --btn-inactive-bg:#2B2B2B; /* dark */
+      --btn-inactive-fg:#FFD200; /* yellow text */
+      --btn-active-bg:#0076FF;    /* blue */
+      --btn-active-fg:#ffffff;    /* white text */
+      /* Other */
+      --line-badge-bg:#FFD200;
+      --line-badge-fg:#000;
+      --card-bg: rgba(255,255,255,0.08);
+      --border: rgba(255,255,255,0.35);
+    }
+
+    html, body { margin:0; padding:0; background:var(--bg); color:var(--fg);
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial, sans-serif; }
+    .wrap { max-width: 560px; margin: 0 auto; padding: 10px 12px 24px; }
+    h1 { font-size: 22px; margin: 6px 0 10px; font-weight: 800; }
+    .meta { font-size: 12px; color: var(--muted); display:flex; gap:8px; align-items:center; flex-wrap: wrap; }
+
+    /* Rows / list */
+    .row { display:flex; align-items: center; justify-content: space-between;
+      padding: 12px 10px; border-radius: 12px; margin: 8px 0; background: var(--card-bg); }
+    .line { font-weight: 800; font-size: 18px; min-width: 56px; text-align: left;
+      background: var(--line-badge-bg); color: var(--line-badge-fg);
+      padding: 2px 8px; border-radius:8px; display:inline-block; }
+    .dir { font-size: 14px; line-height: 1.2; flex: 1 1 auto; padding: 0 8px; }
+    .mins { font-size: 22px; font-weight: 800; min-width: 56px; text-align: right; }
+    .badge { font-size: 11px; padding: 2px 6px; border-radius: 999px; background: var(--line-badge-bg); color: var(--line-badge-fg); font-weight: 800; margin-left:6px; }
+    .small { font-size: 12px; color: var(--muted); }
+
+    input, button { font-size: 14px; border-radius: 10px; border: 1px solid var(--border); padding: 6px 10px; background: transparent; color: var(--fg); }
+    button { cursor: pointer; }
+
+    .error { color: #b00020; font-size: 13px; margin-top: 8px; }
+    .hidden { display: none; }
+
+    /* NAV / SUBNAV BUTTONS with active/inactive colors */
+    .nav, .subnav { display:flex; justify-content:center; gap:8px; margin: 10px 0; }
+    .nav button, .subnav button {
+      border: none; border-radius: 9999px; padding: 8px 16px;
+      background: var(--btn-inactive-bg); color: var(--btn-inactive-fg);
+      font-weight: 800;
+    }
+    .nav button.active, .subnav button.active {
+      background: var(--btn-active-bg) !important;
+      color: var(--btn-active-fg) !important;
+      box-shadow: 0 0 10px rgba(0,118,255,0.50);
+    }
+
+    .controls { display:flex; justify-content: space-between; align-items:center; margin: 6px 0 8px; }
+    .summary { font-size: 13px; }
+    .toggle { border: 1px solid var(--border); border-radius: 12px; padding: 4px 8px; }
+    .sectionTitle { font-size: 14px; font-weight: 700; color: var(--muted); margin-top: 6px; }
+  </style>
 </head>
 <body>
-<div class="wrap">
-  <div class="head">
-    <div class="brand"><div class="logo">BVG</div><div style="font-weight:900">Echtzeit-Anzeige</div></div>
-    <div class="right"><span id="status" class="small">lädt…</span><span id="badge" class="badge">30s</span></div>
+  <div class="wrap">
+    <div class="controls">
+      <h1 id="title" style="margin:0;">Hahneberg – M37/M49</h1>
+      <button id="themeBtn" class="toggle" title="Hell/Dunkel umschalten">🌙</button>
+    </div>
+    <div class="meta">
+      <span id="status">lädt…</span>
+      <span class="badge" id="refreshBadge">30s</span>
+      <span id="nextInfo" class="summary"></span>
+    </div>
+
+    <div class="nav">
+      <button id="btnHahneberg" class="active">Hahneberg</button>
+      <button id="btnReimerweg">Reimerweg</button>
+    </div>
+
+    <div class="subnav">
+      <button id="btnDepartures" class="active">Abfahrten</button>
+      <button id="btnArrivals">Ankünfte</button>
+    </div>
+
+    <div id="list"></div>
+    <div id="error" class="error hidden"></div>
   </div>
-
-  <!-- Stationen -->
-  <div class="seg" aria-label="Stationen">
-    <button id="tHah" class="active">Hahneberg (M37/M49)</button>
-    <button id="tRei">Reimerweg (M137)</button>
-  </div>
-
-  <!-- Modus -->
-  <div class="seg" aria-label="Modus">
-    <button id="tDep" class="active">Abfahrten</button>
-    <button id="tArr">Ankünfte</button>
-  </div>
-
-  <div class="hdr"><div>Linie</div><div>Ziel</div><div id="thWhen" style="text-align:right">Abfahrt</div></div>
-
-  <div id="list" class="list"></div>
-  <div id="info" class="info"></div>
-  <div id="err" class="err" role="alert" aria-live="assertive"></div>
-  <footer>Ziel läuft bei Überlänge automatisch durch. • <span id="clock"></span></footer>
-</div>
 
 <script>
 (function(){
-  // IDs
-  var STOP_HAHNEBERG = '900037203';
-  var STOP_REIMERWEG = '900000037274';
-  var API = 'https://v6.vbb.transport.rest';
+  const API_BASE = 'https://v6.vbb.transport.rest';
+  const statusEl = document.getElementById('status');
+  const listEl = document.getElementById('list');
+  const errEl = document.getElementById('error');
+  const refreshBadge = document.getElementById('refreshBadge');
+  const btnHahneberg = document.getElementById('btnHahneberg');
+  const btnReimerweg = document.getElementById('btnReimerweg');
+  const btnDepartures = document.getElementById('btnDepartures');
+  const btnArrivals = document.getElementById('btnArrivals');
+  const titleEl = document.getElementById('title');
+  const nextInfoEl = document.getElementById('nextInfo');
+  const themeBtn = document.getElementById('themeBtn');
 
-  // DOM
-  var listEl=document.getElementById('list'), infoEl=document.getElementById('info'),
-      errEl=document.getElementById('err'), statusEl=document.getElementById('status'),
-      badgeEl=document.getElementById('badge'), clockEl=document.getElementById('clock'),
-      thWhen=document.getElementById('thWhen');
-  var tHah=document.getElementById('tHah'), tRei=document.getElementById('tRei'),
-      tDep=document.getElementById('tDep'), tArr=document.getElementById('tArr');
+  let stopQuery = 'Hahneberg';
+  let lines = new Set(['M37','M49']);
+  let view = 'departures'; // or 'arrivals'
+  let refreshTimer = null;
+  let countdownTimer = null;
+  let countdown = 30;
 
-  // State
-  var stopMode='hahneberg';   // 'hahneberg' | 'reimerweg'
-  var endpoint='departures';  // 'departures' | 'arrivals'
-  var lineSet={'M37':1,'37':1,'M49':1,'49':1}; // default: Hahneberg
+  // THEME (Option B): distinct palettes for light/dark
+  function applyTheme(theme){
+    document.documentElement.classList.toggle('dark', theme === 'dark');
+    localStorage.setItem('theme', theme);
+    themeBtn.textContent = theme === 'dark' ? '☀️' : '🌙';
+  }
+  const savedTheme = localStorage.getItem('theme') || 'dark';
+  applyTheme(savedTheme);
+  themeBtn.addEventListener('click', ()=>{
+    const next = document.documentElement.classList.contains('dark') ? 'light' : 'dark';
+    applyTheme(next);
+  });
 
-  // Uhr
-  function tick(){ clockEl.textContent=new Date().toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'}); }
-  setInterval(tick,1000); tick();
+  function mins(until){
+    const dt = new Date(until).getTime();
+    const diff = Math.max(0, Math.round((dt - Date.now())/60000));
+    return diff;
+  }
 
-  // URL je Station
-  function urlFor(mode){
-    var path=(mode==='arrivals')?'arrivals':'departures';
-    if (stopMode==='hahneberg'){
-      // Hahneberg funktioniert zuverlässig über /stops
-      return API + '/stops/' + encodeURIComponent(STOP_HAHNEBERG) + '/' + path + '?duration=180&results=120&language=de&remarks=false';
-    } else {
-      // Reimerweg braucht /stations
-      return API + '/stations/' + encodeURIComponent(STOP_REIMERWEG) + '/' + path + '?duration=180&results=120&language=de&remarks=false';
+  async function resolveStop(query){
+    const url = `${API_BASE}/locations?query=${encodeURIComponent(query)}&stops=true&results=5`;
+    const res = await fetch(url, { headers: { 'accept': 'application/json' }, cache: 'no-store' });
+    if(!res.ok) throw new Error('Stop-Suche fehlgeschlagen (HTTP ' + res.status + ')');
+    const data = await res.json();
+    const stop = data.find(x => x.type === 'stop');
+    if(!stop) throw new Error('Keine Haltestelle gefunden');
+    return stop.id;
+  }
+
+  function render(deps){
+    listEl.innerHTML = '';
+    if(!deps || !deps.length){
+      listEl.innerHTML = '<div class="small">Keine ' + (view==='departures'?'Abfahrten':'Ankünfte') + ' in den nächsten 90 Minuten.</div>';
+      nextInfoEl.textContent = '';
+      return;
     }
-  }
+    // Summary (erste Zeile)
+    const first = deps[0];
+    const when = first?.when || first?.plannedWhen;
+    const m = mins(when);
+    const line = first?.line?.name || '';
+    const label = view==='departures' ? 'Nächste Abfahrt' : 'Nächste Ankunft';
+    nextInfoEl.textContent = `${label}: ${line} in ${m} min (um ${new Date(when).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})})`;
 
-  // Helpers
-  function minutesLeft(iso){ var m=Math.round((new Date(iso).getTime()-Date.now())/60000); return (m<0?0:m); }
-  function setStatus(code, kind){ // kind: 'ok' | 'hint' | 'err'
-    var suffix = kind==='hint' ? ' • Hinweis' : (kind==='err' ? ' • Fehler' : '');
-    statusEl.textContent = 'HTTP ' + code + suffix;
-  }
-  function setTabs(){
-    tHah.classList.toggle('active', stopMode==='hahneberg');
-    tRei.classList.toggle('active', stopMode==='reimerweg');
-    tDep.classList.toggle('active', endpoint==='departures');
-    tArr.classList.toggle('active', endpoint==='arrivals');
-    thWhen.textContent = endpoint==='arrivals' ? 'Ankunft' : 'Abfahrt';
-  }
-
-  function row(it){
-    var line=(it&&it.line&&it.line.name)?String(it.line.name):'?';
-    var dir =(it&&it.direction)?String(it.direction):(it&&it.destination&&it.destination.name)?String(it.destination.name):'—';
-    var when=(it&&(it.plannedWhen||it.when))?(it.plannedWhen||it.when):null;
-
-    var r=document.createElement('div'); r.className='row';
-    var lin=document.createElement('div'); lin.className='lincol';
-    var b=document.createElement('div'); b.className='badgeLine'; b.textContent=line; lin.appendChild(b);
-
-    var w=document.createElement('div'); w.className='dir';
-    var inner=document.createElement('div'); inner.className='tickerInner'; inner.textContent=dir.replace(/^Berlin,\s*/,'').trim(); w.appendChild(inner);
-
-    var m=document.createElement('div'); m.className='mins'; m.innerHTML=when? (minutesLeft(when)+'<span class="unit">min</span>') : '–';
-
-    r.appendChild(lin); r.appendChild(w); r.appendChild(m);
-
-    // einfacher Marquee
-    setTimeout(function(){
-      var wc=w.clientWidth, wi=inner.scrollWidth;
-      if(wi>wc){
-        var gap=60, txt=inner.textContent, total=wi+gap, dur=Math.max(8,Math.round(total/60));
-        inner.innerHTML='<span>'+txt+'</span><span style="padding-left:'+gap+'px">'+txt+'</span>';
-        var key='mq_'+Math.random().toString(36).slice(2);
-        var st=document.createElement('style');
-        st.textContent='@keyframes '+key+'{0%{transform:translateX(0)}100%{transform:translateX(-'+total+'px)}}';
-        document.head.appendChild(st);
-        inner.style.animation=key+' '+dur+'s linear infinite';
-      }
-    },0);
-
-    return r;
-  }
-
-  function render(list, message){
-    listEl.innerHTML=''; infoEl.textContent=''; errEl.style.display='none';
-    if(message==='no-arrivals'){
-      var rr=document.createElement('div'); rr.className='row'; rr.style.justifyContent='center';
-      rr.innerHTML='<div style="grid-column:1/4;text-align:center;font-weight:900">Für diese Haltestelle stellt die BVG keine Ankunftsdaten bereit.</div>';
-      listEl.appendChild(rr); return;
-    }
-    if(!list||!list.length){
-      var r=document.createElement('div'); r.className='row'; r.style.justifyContent='center';
-      r.innerHTML='<div style="grid-column:1/4;text-align:center;font-weight:900">Keine Daten</div>';
-      listEl.appendChild(r); return;
-    }
-    for(var i=0;i<list.length&&i<18;i++) listEl.appendChild(row(list[i]));
-  }
-
-  function filterByLines(list){
-    var out=[], i, nm;
-    for(i=0;i<list.length;i++){
-      nm = (list[i]&&list[i].line&&list[i].line.name)? String(list[i].line.name).toUpperCase() : '';
-      if(lineSet[nm]) out.push(list[i]);
-    }
-    return out;
-  }
-
-  // Auto-Refresh
-  var timerR=null,timerC=null,cd=30;
-  function startAuto(){
-    if(timerR) clearInterval(timerR);
-    if(timerC) clearInterval(timerC);
-    cd=30; badgeEl.textContent=cd+'s';
-    timerC=setInterval(function(){ cd--; if(cd<0) cd=30; badgeEl.textContent=cd+'s'; },1000);
-    timerR=setInterval(function(){ cd=30; load(); },30000);
+    deps.forEach(d => {
+      const line = d?.line?.name || '';
+      const dir = d?.direction || '';
+      const when = d?.when || d?.plannedWhen;
+      const delayMin = (d?.delay || 0)/60;
+      const m = mins(when);
+      const row = document.createElement('div');
+      row.className = 'row';
+      row.innerHTML = `
+        <div class="line">${line}</div>
+        <div class="dir">${dir}<div class="small">${new Date(when).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}${delayMin?` • ±${delayMin} min`:''}</div></div>
+        <div class="mins">${m}<span class="small"> min</span></div>
+      `;
+      listEl.appendChild(row);
+    });
   }
 
   async function load(){
     try{
-      errEl.style.display='none';
-      listEl.innerHTML='<div class="row" style="justify-content:center"><div style="grid-column:1/4" class="ghost">Lade Daten…</div></div>';
-
-      var url=urlFor(endpoint);
-      var res=await fetch(url, {cache:'no-store', headers:{accept:'application/json'}});
-      if(!res.ok){
-        // Option C: 404 bei Arrivals → neutraler Hinweis statt Fehler
-        if(res.status===404 && endpoint==='arrivals'){
-          setStatus(404,'hint'); render(null,'no-arrivals'); return;
-        }
-        setStatus(res.status,'err');
-        var t=await res.text();
-        errEl.textContent='Fehler: HTTP '+res.status+' • '+t.slice(0,120)+'…';
-        errEl.style.display='block'; render([]); return;
-      }
-      setStatus(200,'ok');
-      var data=await res.json();
-      var list=Array.isArray(data)?data:(data[endpoint]||[]);
-      list = filterByLines(list).sort(function(a,b){
-        var aw=(a&&(a.when||a.plannedWhen))?new Date(a.when||a.plannedWhen).getTime():0;
-        var bw=(b&&(b.when||b.plannedWhen))?new Date(b.when||b.plannedWhen).getTime():0;
-        return aw-bw;
-      });
-      render(list);
+      statusEl.textContent = 'lädt…';
+      errEl.classList.add('hidden');
+      const stopId = await resolveStop(stopQuery);
+      const endpoint = view === 'departures' ? 'departures' : 'arrivals';
+      const url = `${API_BASE}/stops/${encodeURIComponent(stopId)}/${endpoint}?duration=90&results=50&language=de&remarks=false`;      
+      const res = await fetch(url, { headers: { 'accept': 'application/json' }, cache: 'no-store' });
+      const data = await res.json();
+      const list = Array.isArray(data) ? data : (data && Array.isArray(data[endpoint]) ? data[endpoint] : []);
+      const filtered = list.filter(d => {
+        const name = (d?.line?.name || '').toUpperCase();
+        return lines.has(name);
+      }).slice(0, 20);
+      render(filtered);
+      statusEl.textContent = `${stopQuery} • ${view==='departures'?'Abfahrten':'Ankünfte'} • aktualisiert ${new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}`;
     }catch(e){
-      setStatus('—','err'); errEl.textContent='Netzwerkfehler: '+(e&&e.message?e.message:String(e));
-      errEl.style.display='block'; render([]);
-    }finally{
-      startAuto();
+      console.error(e);
+      errEl.textContent = e.message || String(e);
+      errEl.classList.remove('hidden');
+      statusEl.textContent = 'Fehler';
+      nextInfoEl.textContent = '';
     }
   }
 
-  // Tab-Events
-  tHah.onclick=function(){
-    stopMode='hahneberg';
-    lineSet={'M37':1,'37':1,'M49':1,'49':1};
-    setTabs(); load();
-  };
-  tRei.onclick=function(){
-    stopMode='reimerweg';
-    lineSet={'M137':1,'137':1};
-    setTabs(); load();
-  };
-  tDep.onclick=function(){ endpoint='departures'; setTabs(); load(); };
-  tArr.onclick=function(){ endpoint='arrivals';   setTabs(); load(); };
+  function startAutoRefresh(){
+    if(refreshTimer) clearInterval(refreshTimer);
+    if(countdownTimer) clearInterval(countdownTimer);
+    countdown = 30;
+    refreshBadge.textContent = countdown + 's';
+    countdownTimer = setInterval(()=>{
+      countdown--; if(countdown<0) countdown=30; refreshBadge.textContent = countdown + 's';
+    }, 1000);
+    refreshTimer = setInterval(()=>{ countdown=30; load(); }, 30000);
+  }
 
-  setTabs(); load(); startAuto();
+  function setMode(mode){
+    if(mode==='hahneberg'){
+      stopQuery = 'Hahneberg';
+      lines = new Set(['M37','M49']);
+      titleEl.textContent = 'Hahneberg – M37/M49';
+      document.title = 'Hahneberg – M37/M49';
+      btnHahneberg.classList.add('active');
+      btnReimerweg.classList.remove('active');
+    } else {
+      stopQuery = 'Reimerweg';
+      lines = new Set(['M137','137']); // M137 oder 137
+      titleEl.textContent = 'Reimerweg – M137';
+      document.title = 'Reimerweg – M137';
+      btnReimerweg.classList.add('active');
+      btnHahneberg.classList.remove('active');
+    }
+    localStorage.setItem('mode', mode);
+    load();
+  }
+
+  function setView(v){
+    view = v;
+    localStorage.setItem('view', v);
+    if(v==='departures'){
+      btnDepartures.classList.add('active');
+      btnArrivals.classList.remove('active');
+    } else {
+      btnArrivals.classList.add('active');
+      btnDepartures.classList.remove('active');
+    }
+    load();
+  }
+
+  btnHahneberg.addEventListener('click', ()=> setMode('hahneberg'));
+  btnReimerweg.addEventListener('click', ()=> setMode('reimerweg'));
+  btnDepartures.addEventListener('click', ()=> setView('departures'));
+  btnArrivals.addEventListener('click', ()=> setView('arrivals'));
+
+  // initial: gespeicherten Modus/Ansicht/Theme anwenden
+  const savedMode = localStorage.getItem('mode') || 'hahneberg';
+  const savedView = localStorage.getItem('view') || 'departures';
+  setMode(savedMode);
+  setView(savedView);
+  startAutoRefresh();
 })();
 </script>
 </body>
 </html>
+
